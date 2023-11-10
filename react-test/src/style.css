@@ -1,34 +1,39 @@
 /* UA Reset */
-*, *::before, *::after {
-    box-sizing: border-box;
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
 }
 
-*{
-    margin: 0;
-    padding: 0;
-    font: inherit;
+* {
+  margin: 0;
+  padding: 0;
+  font: inherit;
 }
 
 html {
-    font-family: sans-serif;
-    color-scheme: dark light;
+  font-family: sans-serif;
+  color-scheme: dark light;
 }
 
 body {
-    min-height: 100vh;
+  min-height: 100vh;
 }
 
-img, picture, svg, video{
-    display: block;
-    max-width: 100%;
+img,
+picture,
+svg,
+video {
+  display: block;
+  max-width: 100%;
 }
 
 /* Styles */
 div {
-    margin: 2rem;
-    text-align: center;
+  margin: 2rem;
+  text-align: center;
 }
 
 h1 {
-    margin: 1.5rem 0.25rem;
+  margin: 1.5rem 0.25rem;
 }
