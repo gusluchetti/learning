@@ -1,26 +1,16 @@
-import React from 'react';
-import ReactDOM from 'react-dom'
-
-const Item = (props) => {
-  return React.createElement("div", null, [
-    React.createElement("h2", null, props.title),
-    React.createElement("p", null, props.info),
-    React.createElement("p", null, props.extra),
-  ]);
-};
+import { createRoot } from "react-dom";
+import Item from "./Item";
 
 const App = () => {
-  return React.createElement("div", null, [
-    React.createElement("h1", null, "Hello Basic React!"),
-    React.createElement(Item, { title: "test", info: "nothing", extra: "" }),
-    React.createElement(Item, {
-      title: "spooky",
-      info: "halloween",
-      extra: "?",
-    }),
-  ]);
+  return (
+    <div>
+      <h1>Hello Basic React!</h1>
+      <Item title="title" info="info" extra="extra" />
+      <Item title="2" info="testing" extra="things" />
+    </div>
+  );
 };
 
 const container = document.getElementById("root");
-const root = ReactDOM.createRoot(container);
-root.render(React.createElement(App));
+const root = createRoot(container);
+root.render(<App />);
