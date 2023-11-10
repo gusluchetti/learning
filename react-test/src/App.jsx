@@ -1,3 +1,6 @@
+import React from 'react';
+import ReactDOM from 'react-dom'
+
 const Item = (props) => {
   return React.createElement("div", null, [
     React.createElement("h2", null, props.title),
