@@ -1,12 +1,12 @@
-import { createRoot } from "react-dom";
+import { createRoot } from "react-dom/client";
 import Item from "./Item";
 
 const App = () => {
   return (
     <div>
       <h1>Hello Basic React!</h1>
-      <Item title="title" info="info" extra="extra" />
-      <Item title="2" info="testing" extra="things" />
+      <Item title="title" info="info" extra="" />
+      <Item title="subtitle" info="testing react" extra="extra info" />
     </div>
   );
 };
