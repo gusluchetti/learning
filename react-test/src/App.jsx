@@ -6,6 +6,7 @@ const App = () => {
   return (
     <div>
       <h1>Hello Basic React!</h1>
+      <SearchParams />
       <Item title="title" info="info" extra="" />
       <Item title="subtitle" info="testing react" extra="extra info" />
     </div>

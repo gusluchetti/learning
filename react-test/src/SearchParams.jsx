@@ -1,14 +1,26 @@
+import { useState } from 'react';
+
 const SearchParams = () => {
-  const location = "Kanto";
+  // useState == react hook to add state variable
+  // state variable = retain data between render, 
+  // update var and trigger re-render
+  const [type, setType] = useState("Normal")
 
   return (
     <div className="search-params">
       <form>
-        <label htmlFor="location">
-          <input id="location" value={location} placeholder="Location" />
+        <label htmlFor="type">
+          Type:
+          <input 
+            id="type" 
+            placeholder="Type"
+            onChange={(e) => setType(e.target.value)} 
+            value={type.toLowerCase()} /> 
         </label>
-        <button type="submit">Submit</button>
+        <button type="button">Submit</button>
       </form>
     </div>
   );
 };
+
+export default SearchParams;
