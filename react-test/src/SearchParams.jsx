@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
+import { ANIMALS, API_URL } from "./Constants"
+import useBreedList from "./useBreedList"
+
 import Pet from "./Pet";
-const ANIMALS = ["bird", "cat", "dog", "rabbit", "reptile"];
-const API_URL = "https://pets-v2.dev-apis.com";
 
 const SearchParams = () => {
   // useState == react hook to add state variable
@@ -11,7 +12,7 @@ const SearchParams = () => {
   const [animal, setAnimal] = useState("");
   const [breed, setBreed] = useState("");
   const [pets, setPets] = useState([]);
-  const breeds = [];
+  const [breeds, status] = useBreedList(animal);
 
   // useEffect = connect and synchronize to any external systems
   useEffect(() => {
@@ -19,8 +20,8 @@ const SearchParams = () => {
   }, []);
 
   async function requestPets() {
-    let filter = `?animal=${animal}&location=${location}&breed=${breed}`;
-    const res = await fetch(`${API_URL}/pets${filter}`);
+    const filter = `/pets?animal=${animal}&location=${location}&breed=${breed}`;
+    const res = await fetch(`${API_URL}${filter}`);
     const json = await res.json();
 
     setPets(json.pets);
