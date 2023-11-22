@@ -1,8 +1,7 @@
 import { useState, useEffect } from "react";
-import { ANIMALS, API_URL } from "./Constants"
-import useBreedList from "./useBreedList"
-
-import Pet from "./Pet";
+import { ANIMALS, API_URL } from "./Constants";
+import useBreedList from "./useBreedList";
+import Results from "./Results";
 
 const SearchParams = () => {
   // useState == react hook to add state variable
@@ -80,16 +79,7 @@ const SearchParams = () => {
         <button type="submit">Submit</button>
       </form>
 
-      <div className="pets">
-        {pets.map((pet) => (
-          <Pet
-            key={pet.id}
-            name={pet.name}
-            animal={pet.animal}
-            breed={pet.breed}
-          />
-        ))}
-      </div>
+      <Results pets={pets} />
     </div>
   );
 };
