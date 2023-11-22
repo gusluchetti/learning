@@ -2,8 +2,9 @@
   "name": "react-test",
   "version": "1.0.0",
   "description": "testing react from the bottom-up",
-  "main": "index.html",
   "type": "module",
+  "author": "Gustavo Luchetti",
+  "license": "ISC",
   "scripts": {
     "dev": "vite",
     "build": "vite build",
@@ -12,8 +13,6 @@
     "lint": "biome lint .",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
-  "author": "Gustavo Luchetti",
-  "license": "ISC",
   "devDependencies": {
     "@biomejs/biome": "1.3.3",
     "@vitejs/plugin-react": "^4.2.0",
