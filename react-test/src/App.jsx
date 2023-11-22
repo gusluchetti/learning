@@ -1,5 +1,6 @@
 import { createRoot } from "react-dom/client";
 import Item from "./Item";
+import SearchParams from "./SearchParams"
 
 const App = () => {
   return (
