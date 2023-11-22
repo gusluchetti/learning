@@ -4,7 +4,8 @@
   "description": "testing react from the bottom-up",
   "main": "index.html",
   "scripts": {
-    "format": "biome format --write ./src",
+    "format": "biome format --write .",
+    "lint": "biome lint ./src",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "Gustavo Luchetti",
