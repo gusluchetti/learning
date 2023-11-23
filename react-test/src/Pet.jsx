@@ -8,14 +8,14 @@ const Pet = ({ id, name, animal, breed, images, location }) => {
 
   return (
     <Link to={`/details/${id}`} className="pet">
-        <div className="img-container">
-          <img src={hero} alt={name} />
-        </div>
-        <div className="pet-info">
-          <p>{name}</p>
-          <p>{`${animal} - ${breed}`}</p>
-          <p>{location}</p>
-        </div>
+      <div className="img-container">
+        <img src={hero} alt={name} />
+      </div>
+      <div className="pet-info">
+        <p>{name}</p>
+        <p>{`${animal} - ${breed}`}</p>
+        <p>{location}</p>
+      </div>
     </Link>
   );
 };

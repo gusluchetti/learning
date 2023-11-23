@@ -1,7 +1,8 @@
 import { useState, useEffect } from "react";
-import { ANIMALS, API_URL } from "./Constants";
+
 import useBreedList from "./useBreedList";
-import Results from "./Results";
+import { ANIMALS, API_URL } from "../Constants";
+import Pets from "../Pets";
 
 const SearchParams = () => {
   // useState == react hook to add state variable
@@ -79,7 +80,7 @@ const SearchParams = () => {
         <button type="submit">Submit</button>
       </form>
 
-      <Results pets={pets} />
+      <Pets pets={pets} />
     </div>
   );
 };

@@ -1,6 +1,6 @@
 import Pet from "./Pet";
 
-const Results = ({ pets }) => {
+const Pets = ({ pets }) => {
   return (
     <div className="pets">
       {!pets.length ? (
@@ -22,4 +22,4 @@ const Results = ({ pets }) => {
   );
 };
 
-export default Results;
+export default Pets;
