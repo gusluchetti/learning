@@ -60,6 +60,10 @@ button {
   padding: 0.25rem 0.5rem;
 }
 
+header {
+  text-align: center;
+}
+
 .search-form {
   display: flex;
   flex-direction: column;
