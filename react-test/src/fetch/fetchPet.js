@@ -1,4 +1,4 @@
-import { API_URL } from "./Constants";
+import { API_URL } from "../Constants";
 
 const fetchPet = async ({ queryKey }) => {
   const id = queryKey[1];

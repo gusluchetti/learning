@@ -1,11 +1,11 @@
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { ANIMALS } from "../Constants";
+import { ANIMALS } from "./Constants";
 
-import fetchPets from "../fetch/fetchPets";
-import useBreedList from "../useBreedList";
+import fetchPets from "./fetch/fetchPets";
+import useBreedList from "./useBreedList";
 
-import Pets from "../Pets";
+import Pets from "./Pets";
 
 const SearchParams = () => {
   const [requestParams, setRequestParams] = useState({
@@ -67,7 +67,7 @@ const SearchParams = () => {
             id="breed"
             name="breed"
             disabled={breeds.length === 0}
-            // onChange={(e) => setBreed(e.target.value)}
+          // onChange={(e) => setBreed(e.target.value)}
           >
             <option />
             {breeds.map((b) => (
