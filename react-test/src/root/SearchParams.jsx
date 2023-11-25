@@ -11,17 +11,17 @@ const SearchParams = () => {
   const [requestParams, setRequestParams] = useState({
     animal: "",
     location: "",
-    breed: ""
-  })
+    breed: "",
+  });
   const [animal, setAnimal] = useState("");
   const [breeds, _status] = useBreedList(animal);
 
   const results = useQuery({
     queryKey: ["search_pets", requestParams],
-    queryFn: fetchPets
+    queryFn: fetchPets,
   });
 
-  let pets = []
+  let pets = [];
   if (results.isSuccess) {
     pets = results.data.pets;
   }
@@ -34,18 +34,15 @@ const SearchParams = () => {
           setRequestParams({
             animal: formData.get("animal"),
             location: formData.get("location"),
-            breed: formData.get("breed")
-          })
+            breed: formData.get("breed"),
+          });
           e.preventDefault();
         }}
         className="search-form"
       >
         <label htmlFor="location">
           Location:
-          <input
-            id="location"
-            name="location"
-          />
+          <input id="location" name="location" />
         </label>
 
         <label htmlFor="animal">
@@ -58,7 +55,9 @@ const SearchParams = () => {
             }}
           >
             <option />
-            {ANIMALS.map((a) => (<option key={a}>{a}</option>))}
+            {ANIMALS.map((a) => (
+              <option key={a}>{a}</option>
+            ))}
           </select>
         </label>
 
@@ -68,10 +67,12 @@ const SearchParams = () => {
             id="breed"
             name="breed"
             disabled={breeds.length === 0}
-          // onChange={(e) => setBreed(e.target.value)}
+            // onChange={(e) => setBreed(e.target.value)}
           >
             <option />
-            {breeds.map((b) => (<option key={b}>{b}</option>))}
+            {breeds.map((b) => (
+              <option key={b}>{b}</option>
+            ))}
           </select>
         </label>
 
