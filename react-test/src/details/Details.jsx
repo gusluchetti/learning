@@ -1,12 +1,10 @@
 import { useParams } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import fetchPet from "../fetchPet";
+import fetchPet from "../fetch/fetchPet";
 
 const Details = () => {
   const { id } = useParams();
-  // if details/id not cached, run fetch
-  // details and id is queryKey!
-  const results = useQuery(["details", id], fetchPet);
+  const results = useQuery({ queryKey: ["details", id], queryFn: fetchPet });
 
   if (results.isLoading || results.isFetching) { // first load
     return (
@@ -22,6 +20,7 @@ const Details = () => {
     <div>
       <h1>{pet.name}</h1>
       <h2>{pet.animal} - {pet.breed}</h2>
+      <p>{pet.description}</p>
     </div>
   )
 };
