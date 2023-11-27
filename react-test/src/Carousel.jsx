@@ -3,11 +3,17 @@ import { Component } from "react";
 
 class Carousel extends Component {
   state = {
-    active: 0
-  }
+    active: 0,
+  };
 
   static defaultProps = {
-    images: [`${API_URL}/pets/none.jpg`]
+    images: [`${API_URL}/pets/none.jpg`],
+  };
+
+  handleIndexClick = (e) => {
+    this.setState({
+      active: +e.target.dataset.index
+    })
   }
 
   render() {
@@ -19,14 +25,18 @@ class Carousel extends Component {
         <img src={images[active]} alt="animal hero" />
         <div>
           {images.map((photo, index) => (
-            <img key={photo} src={photo}
-              className={index === active ? "active" : ""}
+            <img
+              src={photo}
               alt="animal thumbnail"
+              className={index === active ? "active" : ""}
+              key={photo}
+              data-index={index}
+              onClick={this.handleIndexClick} 
             />
           ))}
         </div>
       </div>
-    )
+    );
   }
 }
 
