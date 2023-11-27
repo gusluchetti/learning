@@ -15,13 +15,13 @@ const SearchParams = () => {
   });
   const [animal, setAnimal] = useState("");
   const [breeds, _status] = useBreedList(animal);
+  let pets = [];
 
   const results = useQuery({
     queryKey: ["search_pets", requestParams],
     queryFn: fetchPets,
   });
 
-  let pets = [];
   if (results.isSuccess) {
     pets = results.data.pets;
   }
@@ -67,7 +67,7 @@ const SearchParams = () => {
             id="breed"
             name="breed"
             disabled={breeds.length === 0}
-            // onChange={(e) => setBreed(e.target.value)}
+          // onChange={(e) => setBreed(e.target.value)}
           >
             <option />
             {breeds.map((b) => (
