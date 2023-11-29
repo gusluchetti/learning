@@ -1,5 +1,5 @@
-import { API_URL } from "./Constants";
 import { Component } from "react";
+import { API_URL } from "./Constants";
 
 class Carousel extends Component {
   state = {
@@ -12,9 +12,9 @@ class Carousel extends Component {
 
   handleIndexClick = (e) => {
     this.setState({
-      active: +e.target.dataset.index
-    })
-  }
+      active: +e.target.dataset.index,
+    });
+  };
 
   render() {
     const { active } = this.state;
@@ -31,7 +31,7 @@ class Carousel extends Component {
               className={index === active ? "active" : ""}
               key={photo}
               data-index={index}
-              onClick={this.handleIndexClick} 
+              onClick={this.handleIndexClick}
             />
           ))}
         </div>

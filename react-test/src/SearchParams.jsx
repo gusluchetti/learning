@@ -67,7 +67,7 @@ const SearchParams = () => {
             id="breed"
             name="breed"
             disabled={breeds.length === 0}
-          // onChange={(e) => setBreed(e.target.value)}
+            // onChange={(e) => setBreed(e.target.value)}
           >
             <option />
             {breeds.map((b) => (
