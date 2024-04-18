@@ -8,4 +8,6 @@ app.get('/', (req, res) => {
   res.json({ message: 'hi there!' })
 })
 
-app.listen(3001, "192.168.0.173")
+app.listen(3001, "192.168.0.173", () => {
+  console.log('running on http://192.168.0.173:3001')
+})
