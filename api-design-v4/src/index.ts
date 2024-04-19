@@ -2,6 +2,9 @@ import express from 'express';
 import morgan from 'morgan';
 import router from './router';
 
+import * as dotenv from 'dotenv';
+dotenv.config();
+
 const PORT = 3001;
 const HOST = "192.168.0.173";
 
