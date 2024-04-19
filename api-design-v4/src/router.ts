@@ -3,7 +3,10 @@ import { Router } from 'express'
 const router = Router()
 
 // posts
-router.get('/posts', () => { })
+router.get('/posts', (req, res) => {
+  res.json(['post1', 'post2'])
+  res.end()
+})
 router.post('/post', () => { })
 router.get('/post:id', () => { })
 router.put('/post:id', () => { }) // COMPLETELY REPLACE
