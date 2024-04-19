@@ -1,9 +1,13 @@
 import express from 'express';
-import router from './router'
+import morgan from 'morgan';
+import router from './router';
+
+const PORT = 3001;
+const HOST = "192.168.0.173";
 
 const app = express()
-const PORT = 3001
-const HOST = "192.168.0.173"
+
+app.use(morgan('dev'))
 
 app.get('/', (req, res) => {
   console.log(req, 'hello from express!')
@@ -14,5 +18,5 @@ app.get('/', (req, res) => {
 app.use('/api', router)
 
 app.listen(PORT, HOST, () => {
-  console.log('running on http://192.168.0.173:3001')
+  console.log(`running on http://${HOST}:${PORT}`)
 })
