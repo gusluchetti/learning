@@ -3,6 +3,7 @@ import morgan from 'morgan';
 import router from './router';
 
 import * as dotenv from 'dotenv';
+import { protect } from './modules/auth';
 dotenv.config();
 
 const PORT = 3001;
@@ -18,7 +19,7 @@ app.get('/', (_, res) => {
   res.json({ message: 'hi there!' })
 })
 
-app.use('/api', router)
+app.use('/api', protect, router)
 
 app.listen(PORT, HOST, () => {
   console.log(`running on http://${HOST}:${PORT}`)
