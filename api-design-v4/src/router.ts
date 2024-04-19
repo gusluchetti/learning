@@ -15,14 +15,18 @@ router.delete('/post/:id', () => { })
 // comments
 router.get('/comments/:post_id', () => { })
 router.post('/comment', () => { })
-router.put('/comment/:id', body('comment'), (req, res) => {
-  const errors = validationResult(req);
-  if (!errors.isEmpty()) {
-    res.status(400);
-    res.json({ errors: errors.array() })
-  }
-  res.end()
-})
+
+router.put('/comment/:id',
+  body('comment').notEmpty().isString(),
+  (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+      res.status(400);
+      res.json({ errors: errors.array() })
+    }
+    res.end()
+  })
+
 router.delete('/comment:id', () => { })
 
 export default router
