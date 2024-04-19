@@ -1,11 +1,12 @@
+import * as dotenv from 'dotenv';
 import express from 'express';
 import morgan from 'morgan';
 import router from './router';
 
-import * as dotenv from 'dotenv';
 import { protect } from './modules/auth';
-dotenv.config();
+import { createUser, signIn } from './handlers/user';
 
+dotenv.config();
 const PORT = 3001;
 const HOST = "192.168.0.173";
 
@@ -15,11 +16,9 @@ app.use(morgan('dev'))
 app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (_, res) => {
-  res.json({ message: 'hi there!' })
-})
-
 app.use('/api', protect, router)
+app.post('/user', createUser)
+app.post('/signin', signIn)
 
 app.listen(PORT, HOST, () => {
   console.log(`running on http://${HOST}:${PORT}`)
