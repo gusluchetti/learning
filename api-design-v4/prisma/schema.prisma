@@ -26,5 +26,6 @@ model posts {
 
 model users {
   uid      String @id @default(dbgenerated("gen_random_uuid()")) @db.Uuid
-  username String @db.VarChar(32)
+  username String @unique @db.VarChar(32)
+  password String @db.VarChar
 }
