@@ -16,7 +16,7 @@ export const createUser = async (req: any, res: Response) => {
     }
   })
 
-  const token = createJWT(user);
+  const token = createJWT(user.uid, user.username);
   res.json({ token });
 }
 
@@ -31,6 +31,6 @@ export const signIn = async (req: Request, res: Response) => {
     return;
   }
 
-  const token = createJWT(user);
+  const token = createJWT(user.uid, user.username);
   res.json({ token });
 }
