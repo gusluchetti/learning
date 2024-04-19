@@ -8,10 +8,10 @@ const HOST = "192.168.0.173";
 const app = express()
 
 app.use(morgan('dev'))
+app.use(express.json())
+app.use(express.urlencoded({ extended: true }))
 
-app.get('/', (req, res) => {
-  console.log(req, 'hello from express!')
-  res.status(200)
+app.get('/', (_, res) => {
   res.json({ message: 'hi there!' })
 })
 
