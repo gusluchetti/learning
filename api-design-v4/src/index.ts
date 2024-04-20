@@ -5,9 +5,9 @@ import router from './router';
 
 import { protect } from './modules/auth';
 import { createUser, signIn } from './handlers/user';
+import config from './config';
 
 dotenv.config();
-const PORT = 3001;
 const HOST = "192.168.0.173";
 
 const app = express()
@@ -22,10 +22,22 @@ app.post('/user', createUser)
 app.post('/signin', signIn)
 
 app.use((err, req, res, next) => {
-  console.error(err)
-  res.json({ message: `error: ${err.message}` })
+  switch (err.type) {
+    case 'auth':
+      res.status(401).json({ message: 'Unauthorized' })
+      break;
+
+    case 'input':
+      res.status(400).json({ message: 'Invalid Input' })
+      break;
+
+    default:
+      res.status(500).json({ message: 'Internal Server Error' })
+      break;
+  }
+  console.log(err)
 })
 
-app.listen(PORT, HOST, () => {
-  console.log(`running on http://${HOST}:${PORT}`)
+app.listen(config.port, HOST, () => {
+  console.log(`running on http://${HOST}:${config.port}`)
 })
