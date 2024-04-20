@@ -2,7 +2,7 @@ import prisma from "../db";
 import { comparePasswords, createJWT, hashPassword } from "../modules/auth";
 import { Request, Response } from 'express';
 
-export const createUser = async (req: any, res: Response) => {
+export const createUser = async (req, res) => {
   const hashed = await hashPassword(req.body.password);
   if (!hashed) {
     res.status(500).send('whoops!')
