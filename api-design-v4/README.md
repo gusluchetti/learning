@@ -8,8 +8,8 @@ a great way to accomplish that.
 
 having now finished the course, i'd like to note a few things.
 
-- it's interesting to see such 'partitioned' code after a bit into 'you should see
-  everything that your function does just by glancing at it'. in this case, it does
+- it's interesting to see such 'partitioned' code after seeing a lot of 'you should see
+  everything that your function does just by glancing at it' sentiment online. in this case, it does
   make complete sense for it to be all separate, since a handler might need to do
   lots of other things before actually completing a request (in this case, some middleware, auth,
   input validation, error input validation, and then we reached the db with our
