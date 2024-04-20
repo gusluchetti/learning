@@ -6,6 +6,8 @@
   "scripts": {
     "test": "jest --detectOpenHandles",
     "dev": "ts-node src/index.ts"
+    "build": "tsc -p tsconfig.json",
+    "start": "node dist/index.js",
   },
   "keywords": [],
   "author": "",
