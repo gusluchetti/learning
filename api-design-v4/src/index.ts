@@ -17,8 +17,14 @@ app.use(express.json())
 app.use(express.urlencoded({ extended: true }))
 
 app.use('/api', protect, router)
+
 app.post('/user', createUser)
 app.post('/signin', signIn)
+
+app.use((err, req, res, next) => {
+  console.error(err)
+  res.json({ message: `error: ${err.message}` })
+})
 
 app.listen(PORT, HOST, () => {
   console.log(`running on http://${HOST}:${PORT}`)
