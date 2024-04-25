@@ -4,7 +4,7 @@ pub fn linear_search(haystack: Vec<i32>, needle: i32) -> i32 {
             return i as i32;
         }
     }
-    return -1;
+    -1
 }
 
 pub fn binary_search(haystack: Vec<i32>, needle: i32) -> i32 {
@@ -23,7 +23,7 @@ pub fn binary_search(haystack: Vec<i32>, needle: i32) -> i32 {
         }
     }
 
-    return -1;
+    -1
 }
 
 pub fn two_crystal_ball(breaks: Vec<bool>) -> i32 {
@@ -44,7 +44,7 @@ pub fn two_crystal_ball(breaks: Vec<bool>) -> i32 {
         }
     }
 
-    return -1;
+    -1
 }
 
 pub fn bubble_sort(mut haystack: Vec<i32>) -> Vec<i32> {
