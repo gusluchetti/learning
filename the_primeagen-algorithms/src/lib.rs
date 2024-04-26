@@ -16,7 +16,9 @@ pub fn binary_search(haystack: Vec<i32>, needle: i32) -> i32 {
         let value = haystack[mid];
         if value == needle {
             return value as i32;
-        } else if needle > value {
+        }
+
+        if needle > value {
             lo = mid + 1;
         } else {
             hi = mid;

@@ -1,6 +1,6 @@
 #[cfg(test)]
 mod test {
-    use the_primeagen_algorithms::{two_crystal_ball, binary_search, bubble_sort};
+    use the_primeagen_algorithms::{binary_search, bubble_sort, two_crystal_ball};
 
     #[test]
     fn crystal_ball_test() {
@@ -9,6 +9,14 @@ mod test {
         let breaks = vec![good, bad].concat();
         let broke_location = two_crystal_ball(breaks);
         assert_eq!(broke_location, 637);
+    }
+
+    #[test]
+    fn bs_doesnt_exist() {
+        let mut haystack = vec![3, 5, 3, 0];
+        haystack.sort();
+        let needle = binary_search(haystack, 4);
+        assert_eq!(needle, -1);
     }
 
     #[test]
