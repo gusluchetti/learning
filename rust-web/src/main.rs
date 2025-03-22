@@ -7,7 +7,9 @@ fn App() -> impl IntoView {
     view! {
         <button on:click=move |_| {
             *set_count.write() += 1;
-        }>"Click me: " {count}</button>
+        }
+        class:odd=move || count.get() % 2 == 1
+        >"Click me: " {count}</button>
         <p>"Double count: " {move || count.get() * 2}</p>
     }
 }

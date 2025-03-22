@@ -3,3 +3,8 @@ body {
     color: #fafafa;
     font-family: monospace, 'Courier New', Courier;
 }
+
+.odd {
+    background-color: darkred;
+    color: red;
+}
