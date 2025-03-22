@@ -23,12 +23,7 @@ fn App() -> impl IntoView {
         <p>"Double count: " {double_count}</p>
         <ProgressBar progress=count max=20 />
         <ProgressBar progress=Signal::derive(double_count) max=20 />
-        <ul>
-            {crops.into_iter()
-            .map(|c| view! {<li> {c} </li>})
-            .collect_view()
-            }
-        </ul>
+        <ul>{crops.into_iter().map(|c| view! { <li>{c}</li> }).collect_view()}</ul>
     }
 }
 
