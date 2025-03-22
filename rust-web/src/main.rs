@@ -10,14 +10,18 @@ fn App() -> impl IntoView {
     let double_count = move || count.get() * 2;
 
     view! {
-        <button on:click=move |_| {
-            *set_count.write() += 1;
-        }
-        class:odd=move || count.get() % 2 == 1
-        >"Click me: " {count}</button>
+        <button
+            on:click=move |_| {
+                *set_count.write() += 1;
+            }
+            class:odd=move || count.get() % 2 == 1
+        >
+            "Click me: "
+            {count}
+        </button>
         <p>"Double count: " {double_count}</p>
-        <ProgressBar progress=count max=20/>
-        <ProgressBar progress=Signal::derive(double_count) max=20/>
+        <ProgressBar progress=count max=20 />
+        <ProgressBar progress=Signal::derive(double_count) max=20 />
     }
 }
 
