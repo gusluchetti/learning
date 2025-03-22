@@ -8,6 +8,7 @@ mod components {
 fn App() -> impl IntoView {
     let (count, set_count) = signal(0);
     let double_count = move || count.get() * 2;
+    let crops: Vec<&str> = vec!["Soy", "Cotton", "Corn"];
 
     view! {
         <button
@@ -22,6 +23,12 @@ fn App() -> impl IntoView {
         <p>"Double count: " {double_count}</p>
         <ProgressBar progress=count max=20 />
         <ProgressBar progress=Signal::derive(double_count) max=20 />
+        <ul>
+            {crops.into_iter()
+            .map(|c| view! {<li> {c} </li>})
+            .collect_view()
+            }
+        </ul>
     }
 }
 
