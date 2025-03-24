@@ -23,11 +23,11 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    commands
+    let _camera = commands
         .spawn(Camera3d::default())
         .insert(Transform::from_xyz(1.0, 2.0, 17.0).looking_at(Vec3::ZERO, Vec3::Y));
 
-    commands.spawn((
+    let _directional_light = commands.spawn((
         DirectionalLight::default(),
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
@@ -44,12 +44,12 @@ fn setup(
         .insert(Wall);
 
     let bar = commands
-        .spawn(Mesh3d(meshes.add(Cuboid::new(12.0, 1.0, 1.0))))
+        .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: SILVER.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(6.0, 0.5, 0.5))
+        .insert(Collider::cuboid(10.0, 0.5, 0.5))
         .insert(RigidBody::Dynamic)
         .insert(Transform::from_xyz(0.0, 0.5, 0.0))
         .insert(Bar)
@@ -77,12 +77,12 @@ fn setup(
         })))
         .insert(Collider::ball(0.5))
         .insert(RigidBody::Dynamic)
-        .insert(ColliderMassProperties::Density(4.0))
+        .insert(ColliderMassProperties::Density(6.0))
         .insert(Transform::from_xyz(0.0, 6.0, 0.0))
         .insert(Ball);
 }
 
-fn handle_bar_movement(
+fn move_motors(
     kb_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut Transform, &Position), (With<Position>, With<Motor>)>,
 ) {
@@ -114,6 +114,6 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, handle_bar_movement)
+        .add_systems(Update, move_motors)
         .run();
 }
