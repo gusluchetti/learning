@@ -2,6 +2,17 @@ use bevy::{color::palettes::css::*, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 #[derive(Component)]
+struct Wall;
+
+#[derive(Component)]
+struct Motor;
+#[derive(Component)]
+enum Position {
+    Left,
+    Right,
+}
+
+#[derive(Component)]
 struct Bar;
 
 #[derive(Component)]
@@ -22,34 +33,72 @@ fn setup(
     ));
 
     commands
-        .spawn(Mesh3d(meshes.add(Cuboid::new(1.0, 10.0, 1.0))))
+        .spawn(Mesh3d(meshes.add(Cuboid::new(30.0, 50.0, 0.5))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: RED.into(),
+            base_color: YELLOW.into(),
             ..Default::default()
         })))
-        .insert(Collider::default())
+        .insert(Collider::cuboid(15.0, 25.0, 0.25))
+        .insert(RigidBody::Fixed)
+        .insert(Transform::from_xyz(0.0, 0.0, -2.0))
+        .insert(Wall);
+
+    // left and right motors
+    commands
+        .spawn(RigidBody::Fixed)
+        .insert(Transform::from_xyz(-6.0, 0.0, 0.0))
+        .insert((Motor, Position::Left));
+    commands
+        .spawn(RigidBody::Fixed)
+        .insert(Transform::from_xyz(6.0, 0.0, 0.0))
+        .insert((Motor, Position::Right));
+
+    commands
+        .spawn(Mesh3d(meshes.add(Cuboid::new(12.0, 1.0, 1.0))))
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: SILVER.into(),
+            ..Default::default()
+        })))
+        .insert(Collider::cuboid(6.0, 0.5, 0.5))
+        .insert(RigidBody::KinematicPositionBased)
+        .insert(ColliderMassProperties::Density(4.0))
         .insert(Transform::from_xyz(0.0, 0.5, 0.0))
         .insert(Bar);
 
     commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: RED.into(),
+            base_color: GRAY.into(),
             ..Default::default()
         })))
-        .insert(Collider::default())
+        .insert(Collider::ball(0.5))
+        .insert(RigidBody::Dynamic)
         .insert(Transform::from_xyz(0.0, 6.0, 0.0))
         .insert(Ball);
 }
 
-// WIP: need to deal with other inputs
-fn move_bar(kb_input: Res<ButtonInput<KeyCode>>, mut query: Query<&mut Transform, With<Bar>>) {
-    for mut transform in query.iter_mut() {
-        if kb_input.pressed(KeyCode::ArrowUp) {
-            transform.rotation.y += 2.0;
+fn move_motors(
+    kb_input: Res<ButtonInput<KeyCode>>,
+    mut query: Query<(&mut Transform, &Position), (With<Position>, With<Motor>)>,
+) {
+    //TODO: clamp Y diff between both motors
+    const MOVE_SPEED: f32 = 0.025;
+    for (mut transform, position) in query.iter_mut() {
+        if let Position::Left = position {
+            if kb_input.pressed(KeyCode::KeyW) {
+                transform.translation.y += MOVE_SPEED;
+            }
+            if kb_input.pressed(KeyCode::KeyS) {
+                transform.translation.y -= MOVE_SPEED;
+            }
         }
-        if kb_input.pressed(KeyCode::ArrowDown) {
-            transform.rotation.y -= 2.0;
+        if let Position::Right = position {
+            if kb_input.pressed(KeyCode::ArrowUp) {
+                transform.translation.y += MOVE_SPEED;
+            }
+            if kb_input.pressed(KeyCode::ArrowDown) {
+                transform.translation.y -= MOVE_SPEED;
+            }
         }
     }
 }
@@ -60,6 +109,6 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, move_bar)
+        .add_systems(Update, move_motors)
         .run();
 }
