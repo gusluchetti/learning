@@ -1,4 +1,4 @@
-use bevy::{color::palettes::css::*, prelude::*};
+use bevy::{color::palettes::css::*, core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 #[derive(Component)]
@@ -23,8 +23,11 @@ fn setup(
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
+    // TODO: camera could slowly follow the ball? and should have an offset so it is slightly
+    // higher than ball
     let _camera = commands
         .spawn(Camera3d::default())
+        .insert(DepthPrepass)
         .insert(Transform::from_xyz(1.0, 2.0, 17.0).looking_at(Vec3::ZERO, Vec3::Y));
 
     let _directional_light = commands.spawn((
@@ -32,6 +35,7 @@ fn setup(
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
+    // TODO: use height map to generate custom wall mesh w/ dynamic holes
     let _wall = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(30.0, 50.0, 0.5))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
@@ -84,10 +88,11 @@ fn setup(
 
 fn handle_bar_input(
     kb_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&mut Transform, &Position), (With<Position>, With<Motor>)>,
+    mut query: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
 ) {
-    //TODO: clamp Y diff between both motors
     const MOVE_SPEED: f32 = 0.025;
+    // TODO: use MAX_DISTANCE two clamp possible differences between two motors
+    const _MAX_DISTANCE: f32 = 10.0;
     for (mut transform, position) in query.iter_mut() {
         if let Position::Left = position {
             if kb_input.pressed(KeyCode::KeyW) {
