@@ -1,4 +1,5 @@
 use bevy::{color::palettes::css::*, core_pipeline::prepass::DepthPrepass, prelude::*};
+use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_rapier3d::prelude::*;
 
 #[derive(Component)]
@@ -6,6 +7,7 @@ struct Wall;
 
 #[derive(Component)]
 struct Motor;
+
 #[derive(Component)]
 enum Position {
     Left,
@@ -18,6 +20,9 @@ struct Bar;
 #[derive(Component)]
 struct Ball;
 
+#[derive(Component)]
+struct Hole;
+
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -26,7 +31,7 @@ fn setup(
     // TODO: camera could slowly follow the ball? and should have an offset so it is slightly
     // higher than ball
     let _camera = commands
-        .spawn(Camera3d::default())
+        .spawn(PanOrbitCamera::default())
         .insert(DepthPrepass)
         .insert(Transform::from_xyz(1.0, 2.0, 17.0).looking_at(Vec3::ZERO, Vec3::Y));
 
@@ -35,7 +40,8 @@ fn setup(
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
-    // TODO: use height map to generate custom wall mesh w/ dynamic holes
+    // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
+    // mesh to make ball fall off
     let _wall = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(30.0, 50.0, 0.5))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
@@ -46,6 +52,11 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Transform::from_xyz(0.0, 0.0, -1.1))
         .insert(Wall);
+
+    let _hole = commands
+        .spawn(Mesh3d(meshes.add(Cylinder::new(3.0, 2.0))))
+        .insert(Transform::from_xyz(0.0, 6.0, 0.0))
+        .insert(Hole);
 
     let bar = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
@@ -116,6 +127,7 @@ fn handle_bar_input(
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
