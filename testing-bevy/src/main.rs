@@ -82,7 +82,7 @@ fn setup(
         .insert(Ball);
 }
 
-fn move_motors(
+fn handle_bar_input(
     kb_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut Transform, &Position), (With<Position>, With<Motor>)>,
 ) {
@@ -114,6 +114,6 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, move_motors)
+        .add_systems(Update, handle_bar_input)
         .run();
 }
