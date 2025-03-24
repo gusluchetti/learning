@@ -32,7 +32,7 @@ fn setup(
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
 
-    commands
+    let _wall = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(30.0, 50.0, 0.5))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: YELLOW.into(),
@@ -40,32 +40,36 @@ fn setup(
         })))
         .insert(Collider::cuboid(15.0, 25.0, 0.25))
         .insert(RigidBody::Fixed)
-        .insert(Transform::from_xyz(0.0, 0.0, -2.0))
+        .insert(Transform::from_xyz(0.0, 0.0, -1.1))
         .insert(Wall);
 
-    // left and right motors
-    commands
-        .spawn(RigidBody::Fixed)
-        .insert(Transform::from_xyz(-6.0, 0.0, 0.0))
-        .insert((Motor, Position::Left));
-    commands
-        .spawn(RigidBody::Fixed)
-        .insert(Transform::from_xyz(6.0, 0.0, 0.0))
-        .insert((Motor, Position::Right));
-
-    commands
+    let bar = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(12.0, 1.0, 1.0))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: SILVER.into(),
             ..Default::default()
         })))
         .insert(Collider::cuboid(6.0, 0.5, 0.5))
-        .insert(RigidBody::KinematicPositionBased)
-        .insert(ColliderMassProperties::Density(4.0))
+        .insert(RigidBody::Dynamic)
         .insert(Transform::from_xyz(0.0, 0.5, 0.0))
-        .insert(Bar);
+        .insert(Bar)
+        .id();
 
-    commands
+    let left_joint = SphericalJointBuilder::new().local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
+    let _left_motor = commands
+        .spawn(RigidBody::KinematicPositionBased)
+        .insert(Transform::from_xyz(-6.0, 0.0, 0.0))
+        .insert(ImpulseJoint::new(bar, left_joint))
+        .insert((Motor, Position::Left));
+
+    let right_joint = SphericalJointBuilder::new().local_anchor1(Vec3::new(6.0, 0.0, 0.0));
+    let _right_motor = commands
+        .spawn(RigidBody::KinematicPositionBased)
+        .insert(Transform::from_xyz(6.0, 0.0, 0.0))
+        .insert(ImpulseJoint::new(bar, right_joint))
+        .insert((Motor, Position::Right));
+
+    let _ball = commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: GRAY.into(),
@@ -73,11 +77,12 @@ fn setup(
         })))
         .insert(Collider::ball(0.5))
         .insert(RigidBody::Dynamic)
+        .insert(ColliderMassProperties::Density(4.0))
         .insert(Transform::from_xyz(0.0, 6.0, 0.0))
         .insert(Ball);
 }
 
-fn move_motors(
+fn handle_bar_movement(
     kb_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut Transform, &Position), (With<Position>, With<Motor>)>,
 ) {
@@ -109,6 +114,6 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, move_motors)
+        .add_systems(Update, handle_bar_movement)
         .run();
 }
