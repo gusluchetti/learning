@@ -74,7 +74,7 @@ fn setup(
             base_color: YELLOW.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(HALF_BOARD_WIDTH * 2., 25.0, 0.25))
+        .insert(Collider::cuboid(HALF_BOARD_WIDTH, 25.0, 0.25))
         .insert(Transform::from_xyz(0.0, 0.0, -1.3))
         .insert(Wall);
 
