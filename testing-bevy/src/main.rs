@@ -54,14 +54,14 @@ fn setup(
 
     let _hole = commands
         .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, HOLE_SIZE))))
-        .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: BLACK.into(),
-            ..Default::default()
-        })))
         .insert(
             Transform::from_xyz(5.0, 5.0, -HOLE_SIZE / 1.5)
                 .with_rotation(Quat::from_rotation_x(90.0)),
         )
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: BLACK.into(),
+            ..Default::default()
+        })))
         .insert(Hole);
 
     // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
@@ -72,25 +72,13 @@ fn setup(
             BOARD_HEIGHT,
             0.5,
         ))))
+        .insert(Transform::from_xyz(0.0, 0.0, -1.25))
+        .insert(Collider::cuboid(BOARD_WIDTH / 2., BOARD_HEIGHT / 2., 0.25))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: YELLOW.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(BOARD_WIDTH / 2., BOARD_HEIGHT / 2., 0.25))
-        .insert(Transform::from_xyz(0.0, 0.0, -1.3))
         .insert(Wall);
-
-    let bar = commands
-        .spawn(Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 1.0, 1.0))))
-        .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: SILVER.into(),
-            ..Default::default()
-        })))
-        .insert(RigidBody::Dynamic)
-        .insert(Collider::cuboid(BOARD_WIDTH / 2., 0.5, 0.5))
-        .insert(Transform::from_xyz(0.0, 0.5, 0.0))
-        .insert(Bar)
-        .id();
 
     let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
     let _left_motor = commands
@@ -106,17 +94,31 @@ fn setup(
         .insert(ImpulseJoint::new(bar, right_joint))
         .insert((Motor, Position::Right));
 
+    let bar = commands
+        .spawn(Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 1.0, 1.0))))
+        .insert(Transform::from_xyz(-30.0, -20.0, 0.0))
+        .insert(Collider::cuboid(BOARD_WIDTH / 2., 0.5, 0.5))
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: SILVER.into(),
+            ..Default::default()
+        })))
+        .insert(RigidBody::Dynamic)
+        .insert(Sleeping::disabled())
+        .insert(Bar)
+        .id();
+
     let _ball = commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
+        .insert(Transform::from_xyz(0.0, 2.5, 0.0))
+        .insert(Collider::ball(0.5))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: Color::srgb_from_array([192., 189., 186.]),
             metallic: 0.6,
             perceptual_roughness: 0.1,
             ..Default::default()
         })))
-        .insert(Collider::ball(0.5))
         .insert(RigidBody::Dynamic)
-        .insert(Transform::from_xyz(0.0, 6.0, 0.0))
+        .insert(Sleeping::disabled())
         .insert(Ball);
 }
 
