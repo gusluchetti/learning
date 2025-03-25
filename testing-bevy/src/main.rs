@@ -33,7 +33,7 @@ fn setup(
     let _camera = commands
         .spawn(PanOrbitCamera::default())
         .insert(DepthPrepass)
-        .insert(Transform::from_xyz(1.0, 2.0, 17.0).looking_at(Vec3::ZERO, Vec3::Y));
+        .insert(Transform::from_xyz(0.5, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
     let _directional_light = commands.spawn((
         DirectionalLight::default(),
@@ -50,12 +50,16 @@ fn setup(
         })))
         .insert(Collider::cuboid(15.0, 25.0, 0.25))
         .insert(RigidBody::Fixed)
-        .insert(Transform::from_xyz(0.0, 0.0, -1.1))
+        .insert(Transform::from_xyz(0.0, 0.0, -1.2))
         .insert(Wall);
 
     let _hole = commands
-        .spawn(Mesh3d(meshes.add(Cylinder::new(3.0, 2.0))))
-        .insert(Transform::from_xyz(0.0, 6.0, 0.0))
+        .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: BLACK.into(),
+            ..Default::default()
+        })))
+        .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_y(90.0))
         .insert(Hole);
 
     let bar = commands
@@ -97,28 +101,51 @@ fn setup(
         .insert(Ball);
 }
 
-fn handle_bar_input(
+fn handle_bar_movement(
     kb_input: Res<ButtonInput<KeyCode>>,
     mut query: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
 ) {
     const MOVE_SPEED: f32 = 0.025;
-    // TODO: use MAX_DISTANCE two clamp possible differences between two motors
-    const _MAX_DISTANCE: f32 = 10.0;
-    for (mut transform, position) in query.iter_mut() {
-        if let Position::Left = position {
-            if kb_input.pressed(KeyCode::KeyW) {
-                transform.translation.y += MOVE_SPEED;
-            }
-            if kb_input.pressed(KeyCode::KeyS) {
-                transform.translation.y -= MOVE_SPEED;
-            }
+    const MAX_DISTANCE: f32 = 4.0;
+
+    let mut left_motor = None;
+    let mut right_motor = None;
+
+    for (transform, position) in query.iter_mut() {
+        match position {
+            Position::Left => left_motor = Some((transform, position)),
+            Position::Right => right_motor = Some((transform, position)),
         }
-        if let Position::Right = position {
-            if kb_input.pressed(KeyCode::ArrowUp) {
-                transform.translation.y += MOVE_SPEED;
+    }
+
+    let left_translation_y = left_motor.expect("left exists").0.translation.y;
+    let right_translation_y = right_motor.expect("right exists").0.translation.y;
+
+    let mut left_res: f32 = 0.0;
+    if kb_input.pressed(KeyCode::KeyW) {
+        left_res = left_translation_y + MOVE_SPEED;
+    }
+    if kb_input.pressed(KeyCode::KeyS) {
+        left_res = left_translation_y - MOVE_SPEED;
+    }
+
+    let mut right_res: f32 = 0.0;
+    if kb_input.pressed(KeyCode::ArrowUp) {
+        right_res = right_translation_y + MOVE_SPEED;
+    }
+    if kb_input.pressed(KeyCode::ArrowDown) {
+        right_res = right_translation_y - MOVE_SPEED;
+    }
+
+    for (mut transform, position) in query.iter_mut() {
+        match position {
+            Position::Left => {
+                transform.translation.y =
+                    ((left_res - right_translation_y).abs()).clamp(-1., MAX_DISTANCE);
             }
-            if kb_input.pressed(KeyCode::ArrowDown) {
-                transform.translation.y -= MOVE_SPEED;
+            Position::Right => {
+                transform.translation.y =
+                    ((right_res - left_translation_y).abs()).clamp(-1., MAX_DISTANCE);
             }
         }
     }
@@ -131,6 +158,6 @@ fn main() {
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, handle_bar_input)
+        .add_systems(Update, handle_bar_movement)
         .run();
 }
