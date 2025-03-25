@@ -20,7 +20,7 @@ struct Bar;
 #[derive(Component)]
 struct Ball;
 
-const MOVE_SPEED: f32 = 0.025;
+const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
 const CAMERA_HEIGHT_OFFSET: f32 = 3.0;
 
@@ -95,7 +95,7 @@ fn setup(
         })))
         .insert(Collider::ball(0.5))
         .insert(RigidBody::Dynamic)
-        .insert(ColliderMassProperties::Density(6.0))
+        .insert(GravityScale(5.0))
         .insert(Transform::from_xyz(0.0, 6.0, 0.0))
         .insert(Ball);
 }
