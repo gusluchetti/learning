@@ -27,6 +27,7 @@ struct Hole;
 const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
 const CAMERA_HEIGHT_OFFSET: f32 = 4.0;
+const HOLE_SIZE: f32 = 2.0;
 
 fn setup(
     mut commands: Commands,
@@ -36,12 +37,24 @@ fn setup(
     let _camera = commands
         .spawn(Camera3d::default())
         .insert(DepthPrepass)
-        .insert(Transform::from_xyz(0.5, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
+        .insert(Transform::from_xyz(-1.0, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
     let _directional_light = commands.spawn((
         DirectionalLight::default(),
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
     ));
+
+    let _hole = commands
+        .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, HOLE_SIZE))))
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: BLACK.into(),
+            ..Default::default()
+        })))
+        .insert(
+            Transform::from_xyz(5.0, 5.0, -HOLE_SIZE / 2.)
+                .with_rotation(Quat::from_rotation_x(90.0)),
+        )
+        .insert(Hole);
 
     // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
     // mesh to make ball fall off
@@ -55,15 +68,6 @@ fn setup(
         .insert(RigidBody::Fixed)
         .insert(Transform::from_xyz(0.0, 0.0, -1.2))
         .insert(Wall);
-
-    let _hole = commands
-        .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
-        .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: BLACK.into(),
-            ..Default::default()
-        })))
-        .insert(Transform::from_xyz(0.0, 12.0, 0.0).rotate_z(45.0))
-        .insert(Hole);
 
     let bar = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
@@ -181,7 +185,7 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
+        // .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_bar_movement, camera_follow_player))
         .run();
