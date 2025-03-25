@@ -53,14 +53,14 @@ fn setup(
         .insert(Transform::from_xyz(0.0, 0.0, -1.2))
         .insert(Wall);
 
-    let _hole = commands
-        .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
-        .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: BLACK.into(),
-            ..Default::default()
-        })))
-        .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_y(90.0))
-        .insert(Hole);
+    // let _hole = commands
+    //     .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
+    //     .insert(MeshMaterial3d(materials.add(StandardMaterial {
+    //         base_color: BLACK.into(),
+    //         ..Default::default()
+    //     })))
+    //     .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_y(90.0))
+    //     .insert(Hole);
 
     let bar = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
@@ -119,33 +119,32 @@ fn handle_bar_movement(
     }
 
     let left_translation_y = left_motor.expect("left exists").0.translation.y;
-    let right_translation_y = right_motor.expect("right exists").0.translation.y;
-
-    let mut left_res: f32 = 0.0;
+    let mut left_res: f32 = left_translation_y;
     if kb_input.pressed(KeyCode::KeyW) {
-        left_res = left_translation_y + MOVE_SPEED;
+        left_res += MOVE_SPEED;
     }
     if kb_input.pressed(KeyCode::KeyS) {
-        left_res = left_translation_y - MOVE_SPEED;
+        left_res -= MOVE_SPEED;
     }
 
-    let mut right_res: f32 = 0.0;
+    let right_translation_y = right_motor.expect("right exists").0.translation.y;
+    let mut right_res: f32 = right_translation_y;
     if kb_input.pressed(KeyCode::ArrowUp) {
-        right_res = right_translation_y + MOVE_SPEED;
+        right_res += MOVE_SPEED;
     }
     if kb_input.pressed(KeyCode::ArrowDown) {
-        right_res = right_translation_y - MOVE_SPEED;
+        right_res -= MOVE_SPEED;
     }
 
     for (mut transform, position) in query.iter_mut() {
         match position {
             Position::Left => {
                 transform.translation.y =
-                    ((left_res - right_translation_y).abs()).clamp(-1., MAX_DISTANCE);
+                    left_res.clamp(right_res - MAX_DISTANCE, right_res + MAX_DISTANCE);
             }
             Position::Right => {
                 transform.translation.y =
-                    ((right_res - left_translation_y).abs()).clamp(-1., MAX_DISTANCE);
+                    right_res.clamp(left_res - MAX_DISTANCE, left_res + MAX_DISTANCE);
             }
         }
     }
