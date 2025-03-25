@@ -122,7 +122,7 @@ fn camera_follow_player(
 
     camera
         .translation
-        .smooth_nudge(&direction, 1., time.delta_secs());
+        .smooth_nudge(&direction, 0.25, time.delta_secs());
 }
 
 fn handle_bar_movement(
