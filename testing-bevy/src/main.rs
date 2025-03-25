@@ -1,6 +1,6 @@
 use bevy::color::palettes::css::*;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::pbr::light_consts::lux::OVERCAST_DAY;
+use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -42,7 +42,7 @@ fn setup(
 
     let _directional_light = commands.spawn((
         DirectionalLight {
-            illuminance: OVERCAST_DAY,
+            illuminance: FULL_DAYLIGHT,
             ..Default::default()
         },
         Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
@@ -55,7 +55,7 @@ fn setup(
             ..Default::default()
         })))
         .insert(
-            Transform::from_xyz(5.0, 5.0, -HOLE_SIZE / 2.)
+            Transform::from_xyz(5.0, 5.0, -HOLE_SIZE / 1.5)
                 .with_rotation(Quat::from_rotation_x(90.0)),
         )
         .insert(Hole);
@@ -69,8 +69,7 @@ fn setup(
             ..Default::default()
         })))
         .insert(Collider::cuboid(15.0, 25.0, 0.25))
-        .insert(RigidBody::Fixed)
-        .insert(Transform::from_xyz(0.0, 0.0, -1.2))
+        .insert(Transform::from_xyz(0.0, 0.0, -1.3))
         .insert(Wall);
 
     let bar = commands
@@ -103,8 +102,8 @@ fn setup(
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: Color::srgb_from_array([192., 189., 186.]),
-            metallic: 0.9,
-            perceptual_roughness: 0.2,
+            metallic: 0.6,
+            perceptual_roughness: 0.1,
             ..Default::default()
         })))
         .insert(Collider::ball(0.5))
