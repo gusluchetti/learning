@@ -20,9 +20,12 @@ struct Bar;
 #[derive(Component)]
 struct Ball;
 
+#[derive(Component)]
+struct Hole;
+
 const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
-const CAMERA_HEIGHT_OFFSET: f32 = 3.0;
+const CAMERA_HEIGHT_OFFSET: f32 = 4.0;
 
 fn setup(
     mut commands: Commands,
@@ -52,14 +55,14 @@ fn setup(
         .insert(Transform::from_xyz(0.0, 0.0, -1.2))
         .insert(Wall);
 
-    // let _hole = commands
-    //     .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
-    //     .insert(MeshMaterial3d(materials.add(StandardMaterial {
-    //         base_color: BLACK.into(),
-    //         ..Default::default()
-    //     })))
-    //     .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_y(90.0))
-    //     .insert(Hole);
+    let _hole = commands
+        .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, 5.0))))
+        .insert(MeshMaterial3d(materials.add(StandardMaterial {
+            base_color: BLACK.into(),
+            ..Default::default()
+        })))
+        .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_z(45.0))
+        .insert(Hole);
 
     let bar = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
@@ -122,7 +125,7 @@ fn camera_follow_player(
 
     camera
         .translation
-        .smooth_nudge(&direction, 0.25, time.delta_secs());
+        .smooth_nudge(&direction, 0.1, time.delta_secs());
 }
 
 fn handle_bar_movement(
