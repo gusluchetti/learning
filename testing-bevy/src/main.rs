@@ -1,5 +1,6 @@
 use bevy::color::palettes::css::*;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
+use bevy::pbr::light_consts::lux::OVERCAST_DAY;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -39,10 +40,13 @@ fn setup(
         .insert(DepthPrepass)
         .insert(Transform::from_xyz(-1.0, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
-    // let _directional_light = commands.spawn((
-    //     DirectionalLight::default(),
-    //     Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
-    // ));
+    let _directional_light = commands.spawn((
+        DirectionalLight {
+            illuminance: OVERCAST_DAY,
+            ..Default::default()
+        },
+        Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
+    ));
 
     let _hole = commands
         .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, HOLE_SIZE))))
@@ -188,10 +192,6 @@ fn main() {
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
-        .insert_resource(AmbientLight {
-            color: WHITE.into(),
-            brightness: 0.05,
-        })
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_bar_movement, camera_follow_player))
         .run();
