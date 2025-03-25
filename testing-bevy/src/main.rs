@@ -91,18 +91,18 @@ fn setup(
         .id();
 
     let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
-    let _left_motor = commands.spawn((
-        Transform::from_xyz(-HALF_BOARD_WIDTH, 0.0, 0.0),
-        ImpulseJoint::new(bar, left_joint),
-        (Motor, Position::Left),
-    ));
+    let _left_motor = commands
+        .spawn(RigidBody::KinematicPositionBased)
+        .insert(Transform::from_xyz(-HALF_BOARD_WIDTH, 0.0, 0.0))
+        .insert(ImpulseJoint::new(bar, left_joint))
+        .insert((Motor, Position::Left));
 
     let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(6.0, 0.0, 0.0));
-    let _right_motor = commands.spawn((
-        Transform::from_xyz(HALF_BOARD_WIDTH, 0.0, 0.0),
-        ImpulseJoint::new(bar, right_joint),
-        (Motor, Position::Right),
-    ));
+    let _right_motor = commands
+        .spawn(RigidBody::KinematicPositionBased)
+        .insert(Transform::from_xyz(HALF_BOARD_WIDTH, 0.0, 0.0))
+        .insert(ImpulseJoint::new(bar, right_joint))
+        .insert((Motor, Position::Right));
 
     let _ball = commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
