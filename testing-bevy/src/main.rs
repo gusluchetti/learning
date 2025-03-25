@@ -1,5 +1,5 @@
-use bevy::{color::palettes::css::*, core_pipeline::prepass::DepthPrepass, prelude::*};
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+use bevy::color::palettes::css::*;
+use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_rapier3d::prelude::*;
 
 #[derive(Component)]
@@ -20,18 +20,17 @@ struct Bar;
 #[derive(Component)]
 struct Ball;
 
-#[derive(Component)]
-struct Hole;
+const MOVE_SPEED: f32 = 0.025;
+const MAX_DISTANCE: f32 = 3.0;
+const CAMERA_HEIGHT_OFFSET: f32 = 3.0;
 
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
-    // TODO: camera could slowly follow the ball? and should have an offset so it is slightly
-    // higher than ball
     let _camera = commands
-        .spawn(PanOrbitCamera::default())
+        .spawn(Camera3d::default())
         .insert(DepthPrepass)
         .insert(Transform::from_xyz(0.5, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
@@ -101,17 +100,39 @@ fn setup(
         .insert(Ball);
 }
 
-fn handle_bar_movement(
-    kb_input: Res<ButtonInput<KeyCode>>,
-    mut query: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+fn camera_follow_player(
+    mut camera: Query<&mut Transform, (With<Camera3d>, Without<Ball>)>,
+    ball: Query<&mut Transform, (With<Ball>, Without<Camera3d>)>,
+    time: Res<Time>,
 ) {
-    const MOVE_SPEED: f32 = 0.025;
-    const MAX_DISTANCE: f32 = 4.0;
+    let Ok(mut camera) = camera.get_single_mut() else {
+        return;
+    };
 
+    let Ok(ball) = ball.get_single() else {
+        return;
+    };
+
+    let Vec3 { x: _, y, z: _ } = ball.translation;
+    let direction = Vec3::new(
+        camera.translation.x,
+        y + CAMERA_HEIGHT_OFFSET,
+        camera.translation.z,
+    );
+
+    camera
+        .translation
+        .smooth_nudge(&direction, 1., time.delta_secs());
+}
+
+fn handle_bar_movement(
+    mut motors: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    kb_input: Res<ButtonInput<KeyCode>>,
+) {
     let mut left_motor = None;
     let mut right_motor = None;
 
-    for (transform, position) in query.iter_mut() {
+    for (transform, position) in motors.iter_mut() {
         match position {
             Position::Left => left_motor = Some((transform, position)),
             Position::Right => right_motor = Some((transform, position)),
@@ -136,7 +157,7 @@ fn handle_bar_movement(
         right_res -= MOVE_SPEED;
     }
 
-    for (mut transform, position) in query.iter_mut() {
+    for (mut transform, position) in motors.iter_mut() {
         match position {
             Position::Left => {
                 transform.translation.y =
@@ -153,10 +174,9 @@ fn handle_bar_movement(
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
-        .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
-        .add_systems(Update, handle_bar_movement)
+        .add_systems(Update, (handle_bar_movement, camera_follow_player))
         .run();
 }
