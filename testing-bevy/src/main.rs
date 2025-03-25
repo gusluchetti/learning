@@ -30,7 +30,9 @@ const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
 const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
 const HOLE_SIZE: f32 = 2.0;
-const HALF_BOARD_WIDTH: f32 = 7.0;
+
+const BOARD_WIDTH: f32 = 20.0;
+const BOARD_HEIGHT: f32 = 40.0;
 
 fn setup(
     mut commands: Commands,
@@ -40,7 +42,7 @@ fn setup(
     let _camera = commands
         .spawn(PanOrbitCamera::default())
         .insert(DepthPrepass)
-        .insert(Transform::from_xyz(-1.0, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
+        .insert(Transform::from_xyz(0.0, 0.5, 20.0).looking_at(Vec3::ZERO, Vec3::Y));
 
     let _directional_light = commands.spawn((
         DirectionalLight {
@@ -64,28 +66,28 @@ fn setup(
 
     // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
     // mesh to make ball fall off
-    let _wall = commands
+    let _board = commands
         .spawn(Mesh3d(meshes.add(Cuboid::new(
-            HALF_BOARD_WIDTH * 2.,
-            50.0,
+            BOARD_WIDTH,
+            BOARD_HEIGHT,
             0.5,
         ))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: YELLOW.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(HALF_BOARD_WIDTH, 25.0, 0.25))
+        .insert(Collider::cuboid(BOARD_WIDTH / 2., BOARD_HEIGHT / 2., 0.25))
         .insert(Transform::from_xyz(0.0, 0.0, -1.3))
         .insert(Wall);
 
     let bar = commands
-        .spawn(Mesh3d(meshes.add(Cuboid::new(20.0, 1.0, 1.0))))
+        .spawn(Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 1.0, 1.0))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: SILVER.into(),
             ..Default::default()
         })))
         .insert(RigidBody::Dynamic)
-        .insert(Collider::cuboid(10.0, 0.5, 0.5))
+        .insert(Collider::cuboid(BOARD_WIDTH / 2., 0.5, 0.5))
         .insert(Transform::from_xyz(0.0, 0.5, 0.0))
         .insert(Bar)
         .id();
@@ -93,14 +95,14 @@ fn setup(
     let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
     let _left_motor = commands
         .spawn(RigidBody::KinematicPositionBased)
-        .insert(Transform::from_xyz(-HALF_BOARD_WIDTH, 0.0, 0.0))
+        .insert(Transform::from_xyz(-BOARD_WIDTH / 2., 0.0, 0.0))
         .insert(ImpulseJoint::new(bar, left_joint))
         .insert((Motor, Position::Left));
 
     let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(6.0, 0.0, 0.0));
     let _right_motor = commands
         .spawn(RigidBody::KinematicPositionBased)
-        .insert(Transform::from_xyz(HALF_BOARD_WIDTH, 0.0, 0.0))
+        .insert(Transform::from_xyz(BOARD_WIDTH / 2., 0.0, 0.0))
         .insert(ImpulseJoint::new(bar, right_joint))
         .insert((Motor, Position::Right));
 
@@ -121,7 +123,6 @@ fn setup(
 fn camera_follow_player(
     mut camera: Query<&mut Transform, (With<Camera3d>, Without<Ball>)>,
     ball: Query<&mut Transform, (With<Ball>, Without<Camera3d>)>,
-    time: Res<Time>,
 ) {
     let Ok(mut camera) = camera.get_single_mut() else {
         return;
