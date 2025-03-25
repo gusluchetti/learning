@@ -2,6 +2,7 @@ use bevy::color::palettes::css::*;
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
+use bevy_panorbit_camera::PanOrbitCamera;
 use bevy_rapier3d::prelude::*;
 
 #[derive(Component)]
@@ -27,8 +28,9 @@ struct Hole;
 
 const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
-const CAMERA_HEIGHT_OFFSET: f32 = 4.0;
+const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
 const HOLE_SIZE: f32 = 2.0;
+const HALF_BOARD_WIDTH: f32 = 7.0;
 
 fn setup(
     mut commands: Commands,
@@ -36,7 +38,7 @@ fn setup(
     mut materials: ResMut<Assets<StandardMaterial>>,
 ) {
     let _camera = commands
-        .spawn(Camera3d::default())
+        .spawn(PanOrbitCamera::default())
         .insert(DepthPrepass)
         .insert(Transform::from_xyz(-1.0, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
@@ -63,12 +65,16 @@ fn setup(
     // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
     // mesh to make ball fall off
     let _wall = commands
-        .spawn(Mesh3d(meshes.add(Cuboid::new(30.0, 50.0, 0.5))))
+        .spawn(Mesh3d(meshes.add(Cuboid::new(
+            HALF_BOARD_WIDTH * 2.,
+            50.0,
+            0.5,
+        ))))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
             base_color: YELLOW.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(15.0, 25.0, 0.25))
+        .insert(Collider::cuboid(HALF_BOARD_WIDTH * 2., 25.0, 0.25))
         .insert(Transform::from_xyz(0.0, 0.0, -1.3))
         .insert(Wall);
 
@@ -78,25 +84,25 @@ fn setup(
             base_color: SILVER.into(),
             ..Default::default()
         })))
-        .insert(Collider::cuboid(10.0, 0.5, 0.5))
         .insert(RigidBody::Dynamic)
+        .insert(Collider::cuboid(10.0, 0.5, 0.5))
         .insert(Transform::from_xyz(0.0, 0.5, 0.0))
         .insert(Bar)
         .id();
 
     let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
-    let _left_motor = commands
-        .spawn(RigidBody::KinematicPositionBased)
-        .insert(Transform::from_xyz(-6.0, 0.0, 0.0))
-        .insert(ImpulseJoint::new(bar, left_joint))
-        .insert((Motor, Position::Left));
+    let _left_motor = commands.spawn((
+        Transform::from_xyz(-HALF_BOARD_WIDTH, 0.0, 0.0),
+        ImpulseJoint::new(bar, left_joint),
+        (Motor, Position::Left),
+    ));
 
     let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(6.0, 0.0, 0.0));
-    let _right_motor = commands
-        .spawn(RigidBody::KinematicPositionBased)
-        .insert(Transform::from_xyz(6.0, 0.0, 0.0))
-        .insert(ImpulseJoint::new(bar, right_joint))
-        .insert((Motor, Position::Right));
+    let _right_motor = commands.spawn((
+        Transform::from_xyz(HALF_BOARD_WIDTH, 0.0, 0.0),
+        ImpulseJoint::new(bar, right_joint),
+        (Motor, Position::Right),
+    ));
 
     let _ball = commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
@@ -108,7 +114,6 @@ fn setup(
         })))
         .insert(Collider::ball(0.5))
         .insert(RigidBody::Dynamic)
-        .insert(GravityScale(5.0))
         .insert(Transform::from_xyz(0.0, 6.0, 0.0))
         .insert(Ball);
 }
@@ -135,7 +140,7 @@ fn camera_follow_player(
 
     camera
         .translation
-        .smooth_nudge(&direction, 0.1, time.delta_secs());
+        .smooth_nudge(&direction, 0.025, time.delta_secs())
 }
 
 fn handle_bar_movement(
