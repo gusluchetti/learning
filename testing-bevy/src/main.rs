@@ -1,4 +1,5 @@
 use bevy::color::palettes::css::*;
+use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_rapier3d::prelude::*;
 
@@ -61,7 +62,7 @@ fn setup(
             base_color: BLACK.into(),
             ..Default::default()
         })))
-        .insert(Transform::from_xyz(0.0, 6.0, 0.0).rotate_z(45.0))
+        .insert(Transform::from_xyz(0.0, 12.0, 0.0).rotate_z(45.0))
         .insert(Hole);
 
     let bar = commands
@@ -177,6 +178,8 @@ fn handle_bar_movement(
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins)
+        .add_plugins(FrameTimeDiagnosticsPlugin)
+        .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
         .add_plugins(RapierDebugRenderPlugin::default())
         .add_systems(Startup, setup)
