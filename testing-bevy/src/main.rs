@@ -73,14 +73,14 @@ fn setup(
         .insert(Bar)
         .id();
 
-    let left_joint = SphericalJointBuilder::new().local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
+    let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-6.0, 0.0, 0.0));
     let _left_motor = commands
         .spawn(RigidBody::KinematicPositionBased)
         .insert(Transform::from_xyz(-6.0, 0.0, 0.0))
         .insert(ImpulseJoint::new(bar, left_joint))
         .insert((Motor, Position::Left));
 
-    let right_joint = SphericalJointBuilder::new().local_anchor1(Vec3::new(6.0, 0.0, 0.0));
+    let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(6.0, 0.0, 0.0));
     let _right_motor = commands
         .spawn(RigidBody::KinematicPositionBased)
         .insert(Transform::from_xyz(6.0, 0.0, 0.0))
