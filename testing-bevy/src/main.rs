@@ -39,10 +39,10 @@ fn setup(
         .insert(DepthPrepass)
         .insert(Transform::from_xyz(-1.0, 1.0, 30.0).looking_at(Vec3::ZERO, Vec3::Y));
 
-    let _directional_light = commands.spawn((
-        DirectionalLight::default(),
-        Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
+    // let _directional_light = commands.spawn((
+    //     DirectionalLight::default(),
+    //     Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
+    // ));
 
     let _hole = commands
         .spawn(Mesh3d(meshes.add(Cylinder::new(0.6, HOLE_SIZE))))
@@ -98,7 +98,9 @@ fn setup(
     let _ball = commands
         .spawn(Mesh3d(meshes.add(Sphere::default().mesh())))
         .insert(MeshMaterial3d(materials.add(StandardMaterial {
-            base_color: GRAY.into(),
+            base_color: Color::srgb_from_array([192., 189., 186.]),
+            metallic: 0.9,
+            perceptual_roughness: 0.2,
             ..Default::default()
         })))
         .insert(Collider::ball(0.5))
@@ -185,7 +187,11 @@ fn main() {
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        // .add_plugins(RapierDebugRenderPlugin::default())
+        .add_plugins(RapierDebugRenderPlugin::default())
+        .insert_resource(AmbientLight {
+            color: WHITE.into(),
+            brightness: 0.05,
+        })
         .add_systems(Startup, setup)
         .add_systems(Update, (handle_bar_movement, camera_follow_player))
         .run();
