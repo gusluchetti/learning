@@ -77,18 +77,18 @@ pub fn handle_inputs(
 
     if keys.pressed(KeyCode::KeyR) {
         println!("should reset!");
-        let Ok(mut bar) = q_bars.get_single_mut() else {
-            return;
-        };
-
         let Ok(mut ball) = q_balls.get_single_mut() else {
             return;
         };
 
-        bar.translation = INIT_BAR_POS.translation;
+        let Ok(mut bar) = q_bars.get_single_mut() else {
+            return;
+        };
 
+        ball.1.linvel = Vec3::new(0., 0., 0.);
+        ball.1.angvel = Vec3::new(0., 0., 0.);
         ball.0.translation = INIT_BALL_POS.translation;
-        ball.1.linvel = Vec3::default();
-        ball.1.angvel = Vec3::default();
+
+        bar.translation = INIT_BAR_POS.translation;
     }
 }

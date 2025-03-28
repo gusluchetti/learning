@@ -121,6 +121,7 @@ fn setup(
         Collider::ball(BALL_RADIUS),
         BALL_BAR_FRICTION_RULE,
         ColliderMassProperties::Mass(100.0),
+        Velocity::default(),
         Sleeping::disabled(),
         Ball,
     ));
