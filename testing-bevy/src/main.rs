@@ -7,12 +7,12 @@ use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
 use bevy::window::WindowMode;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_console::ConsolePlugin;
-use bevy_panorbit_camera::PanOrbitCamera;
+use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
 
 #[derive(Component)]
-struct Wall;
+struct Board;
 
 #[derive(Component)]
 struct Motor;
@@ -34,7 +34,7 @@ struct Hole;
 
 const STARTING_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
 const STARTING_BALL_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 2., 0.);
-const STARTING_BAR_POS: Transform = Transform::from_xyz(0., -BOARD_HEIGHT / 2., 0.6);
+const STARTING_BAR_POS: Transform = Transform::from_xyz(0., -BOARD_HEIGHT / 2., 0.05);
 
 const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
 
@@ -42,12 +42,12 @@ const BOARD_WIDTH: f32 = 20.0;
 const BOARD_HEIGHT: f32 = 40.0;
 const BOARD_DEPTH: f32 = 1.25;
 
+const BALL_RADIUS: f32 = 0.3;
+
 const BALL_BAR_FRICTION_RULE: Friction = Friction {
     coefficient: 0.30,
     combine_rule: CoefficientCombineRule::Average,
 };
-
-const BALL_RADIUS: f32 = 0.3;
 
 fn setup(
     mut commands: Commands,
@@ -78,7 +78,7 @@ fn setup(
             base_color: YELLOW.into(),
             ..Default::default()
         })),
-        Wall,
+        Board,
     ));
 
     let _hole = commands.spawn((
@@ -108,7 +108,7 @@ fn setup(
             ..Default::default()
         })),
         STARTING_BALL_POS,
-        Collider::ball(0.5),
+        Collider::ball(BALL_RADIUS),
         BALL_BAR_FRICTION_RULE,
         ColliderMassProperties::Mass(100.0),
         Sleeping::disabled(),
@@ -118,14 +118,14 @@ fn setup(
     let bar = commands
         .spawn((
             RigidBody::KinematicPositionBased,
-            Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.5))),
+            Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.75))),
             MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: SILVER.into(),
                 ..Default::default()
             })),
             STARTING_BAR_POS,
             BALL_BAR_FRICTION_RULE,
-            Collider::cuboid(BOARD_WIDTH / 2., 0.25, 0.25),
+            Collider::cuboid(BOARD_WIDTH / 2., 0.25, 0.375),
             Sleeping::disabled(),
             Bar,
         ))
@@ -180,7 +180,7 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(ConsolePlugin)
+        .add_plugins(ConsolePlugin) //PanOrbitCameraPlugin
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())

@@ -40,6 +40,7 @@ fn handle_bar_movement(
     if matches!(kb_code, KeyCode::ArrowDown) {
         right_res -= MOVE_SPEED;
     }
+    println!(left_translation_y, right_translation_y);
 
     for (mut transform, position) in q_motors.iter_mut() {
         match position {
@@ -90,9 +91,11 @@ pub fn handle_inputs(
     for event in char_input_events.read() {
         if event.state.is_pressed() {
             if motors_movement_keys.contains(&event.key_code) {
+                println!("should move bar! {:?}", event.key_code);
                 handle_bar_movement(&mut q_motors, &event.key_code);
             }
             if event.key_code == KeyCode::KeyR {
+                println!("should reset!");
                 handle_bar_ball_reset(&mut q_bars, &mut q_balls);
             }
         }
