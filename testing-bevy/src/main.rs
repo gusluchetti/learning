@@ -32,9 +32,19 @@ struct Ball;
 #[derive(Component)]
 struct Hole;
 
-const STARTING_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
-const STARTING_BALL_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 2., 0.);
-const STARTING_BAR_POS: Transform = Transform::from_xyz(0., -BOARD_HEIGHT / 2., 0.05);
+const INIT_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
+const INIT_BALL_POS: Transform = Transform::from_xyz(0., 2., 0.);
+const INIT_BAR_POS: Transform = Transform::from_xyz(0., 1., 0.05);
+const LEFT_JOINT_POS: Transform = Transform::from_xyz(
+    -(BOARD_WIDTH / 2.),
+    INIT_BAR_POS.translation.y,
+    INIT_BAR_POS.translation.z,
+);
+const RIGHT_JOINT_POS: Transform = Transform::from_xyz(
+    BOARD_WIDTH / 2.,
+    INIT_BAR_POS.translation.y,
+    INIT_BAR_POS.translation.z,
+);
 
 const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
 
@@ -45,8 +55,8 @@ const BOARD_DEPTH: f32 = 1.25;
 const BALL_RADIUS: f32 = 0.3;
 
 const BALL_BAR_FRICTION_RULE: Friction = Friction {
-    coefficient: 0.30,
-    combine_rule: CoefficientCombineRule::Average,
+    coefficient: 0.1,
+    combine_rule: CoefficientCombineRule::Min,
 };
 
 fn setup(
@@ -57,7 +67,7 @@ fn setup(
     let _camera = commands.spawn((
         PanOrbitCamera::default(),
         DepthPrepass,
-        STARTING_CAMERA_POS.looking_at(STARTING_BALL_POS.translation, Vec3::Y),
+        INIT_CAMERA_POS.looking_at(INIT_BALL_POS.translation, Vec3::Y),
     ));
 
     let _directional_light = commands.spawn((
@@ -107,7 +117,7 @@ fn setup(
             perceptual_roughness: 0.1,
             ..Default::default()
         })),
-        STARTING_BALL_POS,
+        INIT_BALL_POS,
         Collider::ball(BALL_RADIUS),
         BALL_BAR_FRICTION_RULE,
         ColliderMassProperties::Mass(100.0),
@@ -117,13 +127,13 @@ fn setup(
 
     let bar = commands
         .spawn((
-            RigidBody::KinematicPositionBased,
+            RigidBody::Dynamic,
             Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.75))),
             MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: SILVER.into(),
                 ..Default::default()
             })),
-            STARTING_BAR_POS,
+            INIT_BAR_POS,
             BALL_BAR_FRICTION_RULE,
             Collider::cuboid(BOARD_WIDTH / 2., 0.25, 0.375),
             Sleeping::disabled(),
@@ -131,20 +141,18 @@ fn setup(
         ))
         .id();
 
-    let left_joint =
-        RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(-(BOARD_WIDTH / 2.), 0.0, 0.0));
+    let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(LEFT_JOINT_POS.translation);
     let _left_motor = commands.spawn((
         RigidBody::KinematicPositionBased,
-        Transform::from_xyz(-BOARD_WIDTH / 2., 0.0, 0.0),
+        LEFT_JOINT_POS,
         ImpulseJoint::new(bar, left_joint),
         (Motor, Position::Left),
     ));
 
-    let right_joint =
-        RevoluteJointBuilder::new(Vec3::Z).local_anchor1(Vec3::new(BOARD_WIDTH / 2., 0.0, 0.0));
+    let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(RIGHT_JOINT_POS.translation);
     let _right_motor = commands.spawn((
         RigidBody::KinematicPositionBased,
-        Transform::from_xyz(BOARD_WIDTH / 2., 0.0, 0.0),
+        RIGHT_JOINT_POS,
         ImpulseJoint::new(bar, right_joint),
         (Motor, Position::Right),
     ));
@@ -180,7 +188,8 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(ConsolePlugin) //PanOrbitCameraPlugin
+        .add_plugins(ConsolePlugin)
+        .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
