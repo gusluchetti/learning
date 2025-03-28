@@ -7,7 +7,10 @@ const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
 
 fn handle_bar_movement(
-    q_motors: &mut Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    q_motors: &mut Query<
+        (&mut Transform, &Position),
+        (With<Motor>, With<Position>, Without<Bar>, Without<Ball>),
+    >,
     kb_code: &KeyCode,
 ) {
     let mut left_motor = None;
@@ -70,7 +73,10 @@ fn handle_bar_ball_reset(
 
 pub fn handle_inputs(
     mut char_input_events: EventReader<KeyboardInput>,
-    mut q_motors: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    mut q_motors: Query<
+        (&mut Transform, &Position),
+        (With<Motor>, With<Position>, Without<Bar>, Without<Ball>),
+    >,
     mut q_bars: Query<&mut Transform, (With<Bar>, Without<Ball>)>,
     mut q_balls: Query<&mut Transform, (With<Ball>, Without<Bar>)>,
 ) {
