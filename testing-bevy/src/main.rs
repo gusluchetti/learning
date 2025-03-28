@@ -1,75 +1,183 @@
-mod commands;
-mod input;
-
-use bevy::color::palettes::css::*;
-use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
-use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
-use bevy::prelude::*;
-use bevy::window::WindowMode;
-use bevy_console::{AddConsoleCommand, ConsolePlugin};
-// use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
-use bevy_rapier3d::prelude::*;
-use commands::{ExampleCommand, example_command};
-use std::f32::consts::PI;
+//! Bevy has an optional prepass that is controlled per-material. A prepass is a rendering pass that runs before the main pass.
+//! It will optionally generate various view textures. Currently it supports depth, normal, and motion vector textures.
+//! The textures are not generated for any material using alpha blending.
 
 use bevy::{
     core_pipeline::prepass::{DepthPrepass, MotionVectorPrepass, NormalPrepass},
+    pbr::{NotShadowCaster, PbrPlugin},
+    prelude::*,
     reflect::TypePath,
     render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
 };
 
+/// This example uses a shader source file from the assets subdirectory
+const PREPASS_SHADER_ASSET_PATH: &str = "shaders/show_prepass.wgsl";
+const MATERIAL_SHADER_ASSET_PATH: &str = "shaders/custom_material.wgsl";
+
 fn main() {
     App::new()
-        .add_plugins(DefaultPlugins.set(WindowPlugin {
-            primary_window: Some(Window {
-                mode: WindowMode::BorderlessFullscreen(MonitorSelection::Primary),
+        .add_plugins((
+            DefaultPlugins.set(PbrPlugin {
+                // The prepass is enabled by default on the StandardMaterial,
+                // but you can disable it if you need to.
+                //
+                // prepass_enabled: false,
                 ..default()
             }),
-            ..default()
-        }))
-        .add_plugins(MaterialPlugin::<PrepassOutputMaterial> {
-            prepass_enabled: false,
-            ..default()
-        })
-        .add_plugins(ConsolePlugin)
-        .add_console_command::<ExampleCommand, _>(example_command)
-        // .add_plugins(PanOrbitCameraPlugin)
-        .add_plugins(FrameTimeDiagnosticsPlugin)
-        .add_plugins(LogDiagnosticsPlugin::default())
-        .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
-        .add_plugins(RapierDebugRenderPlugin::default())
+            MaterialPlugin::<CustomMaterial>::default(),
+            MaterialPlugin::<PrepassOutputMaterial> {
+                // This material only needs to read the prepass textures,
+                // but the meshes using it should not contribute to the prepass render, so we can disable it.
+                prepass_enabled: false,
+                ..default()
+            },
+        ))
         .add_systems(Startup, setup)
-        .add_systems(
-            Update,
-            (
-                input::handle_inputs,
-                camera_follow_player,
-                toggle_prepass_view,
-            ),
-        )
+        .add_systems(Update, (rotate, toggle_prepass_view))
         .run();
 }
 
-#[derive(Component)]
-struct Board;
+/// set up a simple 3D scene
+fn setup(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<CustomMaterial>>,
+    mut std_materials: ResMut<Assets<StandardMaterial>>,
+    mut depth_materials: ResMut<Assets<PrepassOutputMaterial>>,
+    asset_server: Res<AssetServer>,
+) {
+    // camera
+    commands.spawn((
+        Camera3d::default(),
+        Transform::from_xyz(-2.0, 3., 5.0).looking_at(Vec3::ZERO, Vec3::Y),
+        // Disabling MSAA for maximum compatibility. Shader prepass with MSAA needs GPU capability MULTISAMPLED_SHADING
+        Msaa::Off,
+        // To enable the prepass you need to add the components associated with the ones you need
+        // This will write the depth buffer to a texture that you can use in the main pass
+        DepthPrepass,
+        // This will generate a texture containing world normals (with normal maps applied)
+        NormalPrepass,
+        // This will generate a texture containing screen space pixel motion vectors
+        MotionVectorPrepass,
+    ));
 
-#[derive(Component)]
-struct Motor;
+    // plane
+    commands.spawn((
+        Mesh3d(meshes.add(Plane3d::default().mesh().size(5.0, 5.0))),
+        MeshMaterial3d(std_materials.add(Color::srgb(0.3, 0.5, 0.3))),
+    ));
 
-#[derive(Component)]
-enum Position {
-    Left,
-    Right,
+    // A quad that shows the outputs of the prepass
+    // To make it easy, we just draw a big quad right in front of the camera.
+    // For a real application, this isn't ideal.
+    commands.spawn((
+        Mesh3d(meshes.add(Rectangle::new(20.0, 20.0))),
+        MeshMaterial3d(depth_materials.add(PrepassOutputMaterial {
+            settings: ShowPrepassSettings::default(),
+        })),
+        Transform::from_xyz(-0.75, 1.25, 3.0).looking_at(Vec3::new(2.0, -2.5, -5.0), Vec3::Y),
+        NotShadowCaster,
+    ));
+
+    // Opaque cube
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(materials.add(CustomMaterial {
+            color: LinearRgba::WHITE,
+            color_texture: Some(asset_server.load("branding/icon.png")),
+            alpha_mode: AlphaMode::Opaque,
+        })),
+        Transform::from_xyz(-1.0, 0.5, 0.0),
+        Rotates,
+    ));
+
+    // Cube with alpha mask
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(std_materials.add(StandardMaterial {
+            alpha_mode: AlphaMode::Mask(1.0),
+            base_color_texture: Some(asset_server.load("branding/icon.png")),
+            ..default()
+        })),
+        Transform::from_xyz(0.0, 0.5, 0.0),
+    ));
+
+    // Cube with alpha blending.
+    // Transparent materials are ignored by the prepass
+    commands.spawn((
+        Mesh3d(meshes.add(Cuboid::default())),
+        MeshMaterial3d(materials.add(CustomMaterial {
+            color: LinearRgba::WHITE,
+            color_texture: Some(asset_server.load("branding/icon.png")),
+            alpha_mode: AlphaMode::Blend,
+        })),
+        Transform::from_xyz(1.0, 0.5, 0.0),
+    ));
+
+    // light
+    commands.spawn((
+        PointLight {
+            shadows_enabled: true,
+            ..default()
+        },
+        Transform::from_xyz(4.0, 8.0, 4.0),
+    ));
+
+    commands
+        .spawn((
+            Text::default(),
+            Node {
+                position_type: PositionType::Absolute,
+                top: Val::Px(12.0),
+                left: Val::Px(12.0),
+                ..default()
+            },
+        ))
+        .with_child(TextSpan::new("Prepass Output: transparent\n"))
+        .with_child(TextSpan::new("\n\n"))
+        .with_child(TextSpan::new("Controls\n"))
+        .with_child(TextSpan::new("---------------\n"))
+        .with_child(TextSpan::new("Space - Change output\n"));
+}
+
+// This is the struct that will be passed to your shader
+#[derive(Asset, TypePath, AsBindGroup, Debug, Clone)]
+struct CustomMaterial {
+    #[uniform(0)]
+    color: LinearRgba,
+    #[texture(1)]
+    #[sampler(2)]
+    color_texture: Option<Handle<Image>>,
+    alpha_mode: AlphaMode,
+}
+
+/// Not shown in this example, but if you need to specialize your material, the specialize
+/// function will also be used by the prepass
+impl Material for CustomMaterial {
+    fn fragment_shader() -> ShaderRef {
+        MATERIAL_SHADER_ASSET_PATH.into()
+    }
+
+    fn alpha_mode(&self) -> AlphaMode {
+        self.alpha_mode
+    }
+
+    // You can override the default shaders used in the prepass if your material does
+    // anything not supported by the default prepass
+    // fn prepass_fragment_shader() -> ShaderRef {
+    //     "shaders/custom_material.wgsl".into()
+    // }
 }
 
 #[derive(Component)]
-struct Bar;
+struct Rotates;
 
-#[derive(Component)]
-struct Ball;
-
-#[derive(Component)]
-struct Hole;
+fn rotate(mut q: Query<&mut Transform, With<Rotates>>, time: Res<Time>) {
+    for mut t in q.iter_mut() {
+        let rot = (ops::sin(time.elapsed_secs()) * 0.5 + 0.5) * std::f32::consts::PI * 2.0;
+        t.rotation = Quat::from_rotation_z(rot);
+    }
+}
 
 #[derive(Debug, Clone, Default, ShaderType)]
 struct ShowPrepassSettings {
@@ -96,183 +204,6 @@ impl Material for PrepassOutputMaterial {
     fn alpha_mode(&self) -> AlphaMode {
         AlphaMode::Blend
     }
-}
-
-const PREPASS_SHADER_ASSET_PATH: &str = "shaders/show_prepass.wgsl";
-
-const INIT_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
-const INIT_BALL_POS: Transform = Transform::from_xyz(0., 2., 0.);
-const INIT_BAR_POS: Transform = Transform::from_xyz(0., 1., -BOARD_WIDTH + 0.01);
-const LEFT_JOINT_POS: Transform = Transform::from_xyz(
-    -(BOARD_WIDTH / 2.),
-    INIT_BAR_POS.translation.y,
-    INIT_BAR_POS.translation.z,
-);
-const RIGHT_JOINT_POS: Transform = Transform::from_xyz(
-    BOARD_WIDTH / 2.,
-    INIT_BAR_POS.translation.y,
-    INIT_BAR_POS.translation.z,
-);
-
-const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
-
-const BOARD_WIDTH: f32 = 20.0;
-const BOARD_HEIGHT: f32 = 40.0;
-const BOARD_DEPTH: f32 = 1.25;
-
-const BALL_RADIUS: f32 = 0.3;
-
-const BALL_BAR_FRICTION_RULE: Friction = Friction {
-    coefficient: 0.25,
-    combine_rule: CoefficientCombineRule::Average,
-};
-
-fn setup(
-    mut commands: Commands,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut std_materials: ResMut<Assets<StandardMaterial>>,
-    mut depth_materials: ResMut<Assets<PrepassOutputMaterial>>,
-    // asset_server: Res<AssetServer>,
-) {
-    commands.spawn((
-        Text::default(),
-        Node {
-            position_type: PositionType::Absolute,
-            top: Val::Px(12.0),
-            left: Val::Px(12.0),
-            ..default()
-        },
-        // children![
-        //     TextSpan::new("Prepass Output: transparent\n"),
-        //     TextSpan::new("\n\n"),
-        //     TextSpan::new("Controls\n"),
-        //     TextSpan::new("---------------\n"),
-        //     TextSpan::new("Space - Change output\n"),
-        // ],
-    ));
-
-    let _camera = commands.spawn((
-        Camera3d::default(),
-        Msaa::Off,
-        DepthPrepass,
-        NormalPrepass,
-        MotionVectorPrepass,
-        INIT_CAMERA_POS.looking_at(INIT_BALL_POS.translation, Vec3::Y),
-    ));
-
-    let _directional_light = commands.spawn((
-        DirectionalLight {
-            illuminance: FULL_DAYLIGHT,
-            ..Default::default()
-        },
-        Transform::from_xyz(0.0, 4.0, 18.0).looking_at(Vec3::ZERO, Vec3::Y),
-    ));
-
-    // TODO: understand depth mask to mask cylinder from wall, and add collider-only transparent
-    // mesh to make ball fall off
-    let _board = commands.spawn((
-        Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, BOARD_HEIGHT, 0.5))),
-        Transform::from_xyz(0.0, 0.0, -BOARD_DEPTH),
-        Collider::cuboid(BOARD_WIDTH / 2., BOARD_HEIGHT / 2., 0.25),
-        MeshMaterial3d(std_materials.add(StandardMaterial {
-            base_color: YELLOW.into(),
-            ..Default::default()
-        })),
-        Board,
-    ));
-
-    let _hole = commands.spawn((
-        Mesh3d(meshes.add(Cylinder::new(BALL_RADIUS + 0.1, BOARD_DEPTH + 0.10))),
-        Transform::from_xyz(0.0, 5.0, -BOARD_DEPTH).with_rotation(Quat::from_rotation_x(PI / 2.)),
-        MeshMaterial3d(std_materials.add(StandardMaterial {
-            base_color: BLACK.into(),
-            ..Default::default()
-        })),
-        Hole,
-    ));
-
-    let _ball = commands.spawn((
-        RigidBody::Dynamic,
-        Mesh3d(
-            meshes.add(
-                Sphere {
-                    radius: BALL_RADIUS,
-                }
-                .mesh(),
-            ),
-        ),
-        // MeshMaterial3d(materials.add(StandardMaterial {
-        //     base_color: Color::srgb_from_array([192., 189., 186.]),
-        //     metallic: 0.6,
-        //     perceptual_roughness: 0.1,
-        //     ..Default::default()
-        // })),
-        MeshMaterial3d(depth_materials.add(PrepassOutputMaterial {
-            settings: ShowPrepassSettings::default(),
-        })),
-        INIT_BALL_POS,
-        Collider::ball(BALL_RADIUS),
-        BALL_BAR_FRICTION_RULE,
-        GravityScale(2.),
-        ColliderMassProperties::Density(10.0),
-        Velocity::default(),
-        Sleeping::disabled(),
-        Ball,
-    ));
-
-    let bar = commands
-        .spawn((
-            RigidBody::Dynamic,
-            Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.75))),
-            MeshMaterial3d(std_materials.add(StandardMaterial {
-                base_color: SILVER.into(),
-                ..Default::default()
-            })),
-            INIT_BAR_POS,
-            BALL_BAR_FRICTION_RULE,
-            Collider::cuboid(BOARD_WIDTH / 2., 0.25, 0.375),
-            ColliderMassProperties::Density(0.5),
-            Sleeping::disabled(),
-            Bar,
-        ))
-        .id();
-
-    let left_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(LEFT_JOINT_POS.translation);
-    let _left_motor = commands.spawn((
-        RigidBody::KinematicPositionBased,
-        LEFT_JOINT_POS,
-        ImpulseJoint::new(bar, left_joint),
-        (Motor, Position::Left),
-    ));
-
-    let right_joint = RevoluteJointBuilder::new(Vec3::Z).local_anchor1(RIGHT_JOINT_POS.translation);
-    let _right_motor = commands.spawn((
-        RigidBody::KinematicPositionBased,
-        RIGHT_JOINT_POS,
-        ImpulseJoint::new(bar, right_joint),
-        (Motor, Position::Right),
-    ));
-}
-
-fn camera_follow_player(
-    mut camera: Query<&mut Transform, (With<Camera3d>, Without<Ball>)>,
-    ball: Query<&mut Transform, (With<Ball>, Without<Camera3d>)>,
-) {
-    let Ok(mut camera) = camera.get_single_mut() else {
-        return;
-    };
-    let Ok(ball) = ball.get_single() else {
-        return;
-    };
-
-    let Vec3 { x: _, y, z: _ } = ball.translation;
-    let direction = Vec3::new(
-        camera.translation.x,
-        y + CAMERA_HEIGHT_OFFSET,
-        camera.translation.z,
-    );
-
-    camera.translation = direction;
 }
 
 /// Every time you press space, it will cycle between transparent, depth and normals view
