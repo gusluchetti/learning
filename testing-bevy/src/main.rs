@@ -121,6 +121,7 @@ fn setup(
         INIT_BALL_POS,
         Collider::ball(BALL_RADIUS),
         BALL_BAR_FRICTION_RULE,
+        GravityScale(2.),
         ColliderMassProperties::Density(10.0),
         Velocity::default(),
         Sleeping::disabled(),

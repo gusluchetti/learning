@@ -4,8 +4,8 @@ use bevy_rapier3d::prelude::Velocity;
 use crate::{Ball, Bar, INIT_BALL_POS, INIT_BAR_POS, Motor, Position};
 
 // TODO: organize consts into single file?
-const MOVE_SPEED: f32 = 0.015;
-const MAX_DISTANCE: f32 = 3.0;
+const MOVE_SPEED: f32 = 0.025;
+const MAX_DISTANCE: f32 = 2.0;
 
 pub fn handle_inputs(
     keys: Res<ButtonInput<KeyCode>>,
