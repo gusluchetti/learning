@@ -32,6 +32,10 @@ struct Ball;
 #[derive(Component)]
 struct Hole;
 
+const STARTING_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
+const STARTING_BALL_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 2., 0.);
+const STARTING_BAR_POS: Transform = Transform::from_xyz(0., -BOARD_HEIGHT / 2., 0.6);
+
 const CAMERA_HEIGHT_OFFSET: f32 = 6.0;
 
 const BOARD_WIDTH: f32 = 20.0;
@@ -39,13 +43,11 @@ const BOARD_HEIGHT: f32 = 40.0;
 const BOARD_DEPTH: f32 = 1.25;
 
 const BALL_BAR_FRICTION_RULE: Friction = Friction {
-    coefficient: 0.10,
+    coefficient: 0.30,
     combine_rule: CoefficientCombineRule::Average,
 };
 
-const STARTING_BAR_POS: Transform = Transform::from_xyz(-BOARD_WIDTH, -BOARD_HEIGHT / 2., 0.75);
-const STARTING_BALL_POS: Transform = Transform::from_xyz(0.0, (-BOARD_HEIGHT / 2.) + 1.0, 0.0);
-const BALL_RADIUS: f32 = 0.5;
+const BALL_RADIUS: f32 = 0.3;
 
 fn setup(
     mut commands: Commands,
@@ -55,7 +57,7 @@ fn setup(
     let _camera = commands.spawn((
         PanOrbitCamera::default(),
         DepthPrepass,
-        Transform::from_xyz(0.0, 0.5, 20.0).looking_at(Vec3::ZERO, Vec3::Y),
+        STARTING_CAMERA_POS.looking_at(STARTING_BALL_POS.translation, Vec3::Y),
     ));
 
     let _directional_light = commands.spawn((
@@ -115,7 +117,7 @@ fn setup(
 
     let bar = commands
         .spawn((
-            RigidBody::Dynamic,
+            RigidBody::KinematicPositionBased,
             Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.5))),
             MeshMaterial3d(materials.add(StandardMaterial {
                 base_color: SILVER.into(),
@@ -155,7 +157,6 @@ fn camera_follow_player(
     let Ok(mut camera) = camera.get_single_mut() else {
         return;
     };
-
     let Ok(ball) = ball.get_single() else {
         return;
     };
