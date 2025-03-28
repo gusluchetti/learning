@@ -1,9 +1,10 @@
 use bevy::prelude::*;
+use bevy_rapier3d::prelude::Velocity;
 
 use crate::{Ball, Bar, INIT_BALL_POS, INIT_BAR_POS, Motor, Position};
 
 // TODO: organize consts into single file?
-const MOVE_SPEED: f32 = 0.1;
+const MOVE_SPEED: f32 = 0.025;
 const MAX_DISTANCE: f32 = 3.0;
 
 pub fn handle_inputs(
@@ -13,7 +14,7 @@ pub fn handle_inputs(
         (With<Motor>, With<Position>, Without<Bar>, Without<Ball>),
     >,
     mut q_bars: Query<&mut Transform, (With<Bar>, Without<Ball>)>,
-    mut q_balls: Query<&mut Transform, (With<Ball>, Without<Bar>)>,
+    mut q_balls: Query<(&mut Transform, &mut Velocity), (With<Ball>, Without<Bar>)>,
 ) {
     let motors_movement_keys = vec![
         KeyCode::KeyW,
@@ -85,6 +86,9 @@ pub fn handle_inputs(
         };
 
         bar.translation = INIT_BAR_POS.translation;
-        ball.translation = INIT_BALL_POS.translation;
+
+        ball.0.translation = INIT_BALL_POS.translation;
+        ball.1.linvel = Vec3::default();
+        ball.1.angvel = Vec3::default();
     }
 }
