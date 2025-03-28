@@ -1,3 +1,4 @@
+mod commands;
 mod input;
 
 use bevy::color::palettes::css::*;
@@ -5,6 +6,7 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
 use bevy::window::WindowMode;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
+use bevy_console::ConsolePlugin;
 use bevy_panorbit_camera::PanOrbitCamera;
 use bevy_rapier3d::prelude::*;
 use std::f32::consts::PI;
@@ -44,22 +46,6 @@ const BALL_BAR_FRICTION_RULE: Friction = Friction {
 const STARTING_BAR_POS: Transform = Transform::from_xyz(-BOARD_WIDTH, -BOARD_HEIGHT / 2., 0.75);
 const STARTING_BALL_POS: Transform = Transform::from_xyz(0.0, (-BOARD_HEIGHT / 2.) + 1.0, 0.0);
 const BALL_RADIUS: f32 = 0.5;
-
-fn reset(
-    mut bar: Query<&mut Transform, (With<Bar>, Without<Ball>)>,
-    mut ball: Query<&mut Transform, (With<Ball>, Without<Bar>)>,
-) {
-    let Ok(mut bar) = bar.get_single_mut() else {
-        return;
-    };
-
-    let Ok(mut ball) = ball.get_single_mut() else {
-        return;
-    };
-
-    bar.translation = STARTING_BAR_POS.translation;
-    ball.translation = STARTING_BALL_POS.translation;
-}
 
 fn setup(
     mut commands: Commands,
@@ -193,6 +179,7 @@ fn main() {
             }),
             ..default()
         }))
+        .add_plugins(ConsolePlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())

@@ -1,19 +1,19 @@
 use bevy::{input::keyboard::KeyboardInput, prelude::*};
 
-use crate::{Motor, Position};
+use crate::{Ball, Bar, Motor, Position, STARTING_BALL_POS, STARTING_BAR_POS};
 
 // TODO: organize consts into single file
 const MOVE_SPEED: f32 = 0.015;
 const MAX_DISTANCE: f32 = 3.0;
 
 fn handle_bar_movement(
-    motors: &mut Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    q_motors: &mut Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
     kb_code: &KeyCode,
 ) {
     let mut left_motor = None;
     let mut right_motor = None;
 
-    for (transform, position) in motors.iter_mut() {
+    for (transform, position) in q_motors.iter_mut() {
         match position {
             Position::Left => left_motor = Some((transform, position)),
             Position::Right => right_motor = Some((transform, position)),
@@ -38,7 +38,7 @@ fn handle_bar_movement(
         right_res -= MOVE_SPEED;
     }
 
-    for (mut transform, position) in motors.iter_mut() {
+    for (mut transform, position) in q_motors.iter_mut() {
         match position {
             Position::Left => {
                 transform.translation.y =
@@ -52,9 +52,27 @@ fn handle_bar_movement(
     }
 }
 
+fn handle_bar_ball_reset(
+    q_bars: &mut Query<&mut Transform, (With<Bar>, Without<Ball>)>,
+    q_balls: &mut Query<&mut Transform, (With<Ball>, Without<Bar>)>,
+) {
+    let Ok(mut bar) = q_bars.get_single_mut() else {
+        return;
+    };
+
+    let Ok(mut ball) = q_balls.get_single_mut() else {
+        return;
+    };
+
+    bar.translation = STARTING_BAR_POS.translation;
+    ball.translation = STARTING_BALL_POS.translation;
+}
+
 pub fn handle_inputs(
     mut char_input_events: EventReader<KeyboardInput>,
-    mut motors: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    mut q_motors: Query<(&mut Transform, &Position), (With<Motor>, With<Position>)>,
+    mut q_bars: Query<&mut Transform, (With<Bar>, Without<Ball>)>,
+    mut q_balls: Query<&mut Transform, (With<Ball>, Without<Bar>)>,
 ) {
     let motors_movement_keys = vec![
         KeyCode::KeyW,
@@ -66,7 +84,10 @@ pub fn handle_inputs(
     for event in char_input_events.read() {
         if event.state.is_pressed() {
             if motors_movement_keys.contains(&event.key_code) {
-                handle_bar_movement(&mut motors, &event.key_code);
+                handle_bar_movement(&mut q_motors, &event.key_code);
+            }
+            if event.key_code == KeyCode::KeyR {
+                handle_bar_ball_reset(&mut q_bars, &mut q_balls);
             }
         }
     }
