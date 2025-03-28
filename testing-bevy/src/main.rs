@@ -35,7 +35,7 @@ struct Hole;
 
 const INIT_CAMERA_POS: Transform = Transform::from_xyz(0., (-BOARD_HEIGHT / 2.) + 3., 20.);
 const INIT_BALL_POS: Transform = Transform::from_xyz(0., 2., 0.);
-const INIT_BAR_POS: Transform = Transform::from_xyz(0., 1., 0.05);
+const INIT_BAR_POS: Transform = Transform::from_xyz(0., 1., -0.1);
 const LEFT_JOINT_POS: Transform = Transform::from_xyz(
     -(BOARD_WIDTH / 2.),
     INIT_BAR_POS.translation.y,
