@@ -2,17 +2,21 @@ mod commands;
 mod input;
 
 use bevy::color::palettes::css::*;
-use bevy::core_pipeline::prepass::{MotionVectorPrepass, NormalPrepass};
 use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
-use bevy::render::render_resource::{AsBindGroup, ShaderRef, ShaderType};
+use bevy::prelude::*;
 use bevy::window::WindowMode;
-use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
 use bevy_console::{AddConsoleCommand, ConsolePlugin};
-use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
+// use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_rapier3d::prelude::*;
 use commands::{ExampleCommand, example_command};
 use std::f32::consts::PI;
+
+use bevy::{
+    core_pipeline::prepass::{DepthPrepass, MotionVectorPrepass, NormalPrepass},
+    reflect::TypePath,
+    render::render_resource::{AsBindGroup, ShaderRef, ShaderType},
+};
 
 fn main() {
     App::new()
@@ -29,7 +33,7 @@ fn main() {
         })
         .add_plugins(ConsolePlugin)
         .add_console_command::<ExampleCommand, _>(example_command)
-        .add_plugins(PanOrbitCameraPlugin)
+        // .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
         .add_plugins(RapierPhysicsPlugin::<NoUserData>::default())
@@ -126,11 +130,30 @@ const BALL_BAR_FRICTION_RULE: Friction = Friction {
 fn setup(
     mut commands: Commands,
     mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<StandardMaterial>>,
+    mut std_materials: ResMut<Assets<StandardMaterial>>,
     mut depth_materials: ResMut<Assets<PrepassOutputMaterial>>,
+    // asset_server: Res<AssetServer>,
 ) {
+    commands.spawn((
+        Text::default(),
+        Node {
+            position_type: PositionType::Absolute,
+            top: Val::Px(12.0),
+            left: Val::Px(12.0),
+            ..default()
+        },
+        // children![
+        //     TextSpan::new("Prepass Output: transparent\n"),
+        //     TextSpan::new("\n\n"),
+        //     TextSpan::new("Controls\n"),
+        //     TextSpan::new("---------------\n"),
+        //     TextSpan::new("Space - Change output\n"),
+        // ],
+    ));
+
     let _camera = commands.spawn((
-        PanOrbitCamera::default(),
+        Camera3d::default(),
+        Msaa::Off,
         DepthPrepass,
         NormalPrepass,
         MotionVectorPrepass,
@@ -151,7 +174,7 @@ fn setup(
         Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, BOARD_HEIGHT, 0.5))),
         Transform::from_xyz(0.0, 0.0, -BOARD_DEPTH),
         Collider::cuboid(BOARD_WIDTH / 2., BOARD_HEIGHT / 2., 0.25),
-        MeshMaterial3d(materials.add(StandardMaterial {
+        MeshMaterial3d(std_materials.add(StandardMaterial {
             base_color: YELLOW.into(),
             ..Default::default()
         })),
@@ -161,7 +184,7 @@ fn setup(
     let _hole = commands.spawn((
         Mesh3d(meshes.add(Cylinder::new(BALL_RADIUS + 0.1, BOARD_DEPTH + 0.10))),
         Transform::from_xyz(0.0, 5.0, -BOARD_DEPTH).with_rotation(Quat::from_rotation_x(PI / 2.)),
-        MeshMaterial3d(materials.add(StandardMaterial {
+        MeshMaterial3d(std_materials.add(StandardMaterial {
             base_color: BLACK.into(),
             ..Default::default()
         })),
@@ -201,13 +224,14 @@ fn setup(
         .spawn((
             RigidBody::Dynamic,
             Mesh3d(meshes.add(Cuboid::new(BOARD_WIDTH, 0.5, 0.75))),
-            MeshMaterial3d(materials.add(StandardMaterial {
+            MeshMaterial3d(std_materials.add(StandardMaterial {
                 base_color: SILVER.into(),
                 ..Default::default()
             })),
             INIT_BAR_POS,
             BALL_BAR_FRICTION_RULE,
             Collider::cuboid(BOARD_WIDTH / 2., 0.25, 0.375),
+            ColliderMassProperties::Density(0.5),
             Sleeping::disabled(),
             Bar,
         ))
