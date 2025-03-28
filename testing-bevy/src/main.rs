@@ -6,9 +6,10 @@ use bevy::diagnostic::{FrameTimeDiagnosticsPlugin, LogDiagnosticsPlugin};
 use bevy::pbr::light_consts::lux::FULL_DAYLIGHT;
 use bevy::window::WindowMode;
 use bevy::{core_pipeline::prepass::DepthPrepass, prelude::*};
-use bevy_console::ConsolePlugin;
+use bevy_console::{AddConsoleCommand, ConsolePlugin};
 use bevy_panorbit_camera::{PanOrbitCamera, PanOrbitCameraPlugin};
 use bevy_rapier3d::prelude::*;
+use commands::{ExampleCommand, example_command};
 use std::f32::consts::PI;
 
 #[derive(Component)]
@@ -55,8 +56,8 @@ const BOARD_DEPTH: f32 = 1.25;
 const BALL_RADIUS: f32 = 0.3;
 
 const BALL_BAR_FRICTION_RULE: Friction = Friction {
-    coefficient: 0.1,
-    combine_rule: CoefficientCombineRule::Min,
+    coefficient: 0.35,
+    combine_rule: CoefficientCombineRule::Average,
 };
 
 fn setup(
@@ -120,7 +121,7 @@ fn setup(
         INIT_BALL_POS,
         Collider::ball(BALL_RADIUS),
         BALL_BAR_FRICTION_RULE,
-        ColliderMassProperties::Mass(100.0),
+        ColliderMassProperties::Density(10.0),
         Velocity::default(),
         Sleeping::disabled(),
         Ball,
@@ -190,6 +191,7 @@ fn main() {
             ..default()
         }))
         .add_plugins(ConsolePlugin)
+        .add_console_command::<ExampleCommand, _>(example_command)
         .add_plugins(PanOrbitCameraPlugin)
         .add_plugins(FrameTimeDiagnosticsPlugin)
         .add_plugins(LogDiagnosticsPlugin::default())
