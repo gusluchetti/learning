@@ -56,7 +56,7 @@ const BOARD_DEPTH: f32 = 1.25;
 const BALL_RADIUS: f32 = 0.3;
 
 const BALL_BAR_FRICTION_RULE: Friction = Friction {
-    coefficient: 0.35,
+    coefficient: 0.25,
     combine_rule: CoefficientCombineRule::Average,
 };
 
